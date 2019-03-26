@@ -28,58 +28,60 @@ print 'Input files:'
 print inputFiles()
 
 
-if any( ['2017B' in i for i in inputFiles() ] ):
-    is2017B = True
-else :
-    is2017B = False
+#if any( ['2017B' in i for i in inputFiles() ] ):
+#    is2017B = True
+#else :
+#    is2017B = False
+#
+#if any( ['2016' in i for i in inputFiles() ] ):
+#    is2016 = True
+#else :
+#    is2016 = False
+#
+#ptcuts = "(nFatJet >=2 && FatJet_pt[0]>170 && FatJet_pt[1] > 170) "
+#if not is2016:
+#    trig60  = "( HLT_AK8PFJet60 ==1 && FatJet_pt[0] >  70 )"
+#    trig80  = "( HLT_AK8PFJet80 ==1 && FatJet_pt[0] >  90 )"
+#    trig140 = "( HLT_AK8PFJet140==1 && FatJet_pt[0] > 150 )"
+#    trig200 = "( HLT_AK8PFJet200==1 && FatJet_pt[0] > 210 )"
+#    trig260 = "( HLT_AK8PFJet260==1 && FatJet_pt[0] > 280 )"
+#    trig320 = "( HLT_AK8PFJet320==1 && FatJet_pt[0] > 350 )"
+#    trig400 = "( HLT_AK8PFJet400==1 && FatJet_pt[0] > 430 )"
+#    trig450 = "( HLT_AK8PFJet450==1 && FatJet_pt[0] > 480 )"
+#    trig500 = "( HLT_AK8PFJet500==1 && FatJet_pt[0] > 550 )"
+#    if not is2017B:
+#        trigHT = "(HLT_PFHT1050 == 1 || HLT_AK8PFHT850_TrimMass50 == 1 || HLT_AK8PFHT900_TrimMass50 == 1)"
+#    else:
+#        trigHT = "(HLT_PFHT1050 == 1)"
+#    triglist = [ trig60, trig80, trig140, trig200, trig260, trig320, trig400, trig450, trig500, trigHT]
+#else :
+#    trig60  = "( HLT_PFJet60 ==1 && FatJet_pt[0] > 100 )"
+#    trig80  = "( HLT_PFJet80 ==1 && FatJet_pt[0] > 160 )"
+#    trig140 = "( HLT_PFJet140==1 && FatJet_pt[0] > 220 )"
+#    trig200 = "( HLT_PFJet200==1 && FatJet_pt[0] > 310 )"
+#    trig260 = "( HLT_PFJet260==1 && FatJet_pt[0] > 420 )"
+#    trig320 = "( HLT_PFJet320==1 && FatJet_pt[0] > 510 )"
+#    trig400 = "( HLT_PFJet400==1 && FatJet_pt[0] > 610 )"
+#    trig450 = "( HLT_PFJet450==1 && FatJet_pt[0] > 720 )"
+#    trigHT = "(HLT_PFHT900 == 1 || HLT_AK8PFHT650_TrimR0p1PT0p03Mass50 == 1 || HLT_AK8PFHT700_TrimR0p1PT0p03Mass50 == 1)"
+#    triglist = [ trig60, trig80, trig140, trig200, trig260, trig320, trig400, trig450, trigHT]
+#
+#
+#
+#
+#if isData  :
+#    trigcuts = "(" +  ' || '.join( triglist ) + ")"
+#    cuts = " && ".join( [ptcuts,trigcuts] )
+#else :
+#    cuts = ptcuts
+#
+#print 'Applying cuts : ' + cuts
 
-if any( ['2016' in i for i in inputFiles() ] ):
-    is2016 = True
-else :
-    is2016 = False
-
-ptcuts = "(nFatJet >=2 && FatJet_pt[0]>170 && FatJet_pt[1] > 170) "
-if not is2016:
-    trig60  = "( HLT_AK8PFJet60 ==1 && FatJet_pt[0] >  70 )"
-    trig80  = "( HLT_AK8PFJet80 ==1 && FatJet_pt[0] >  90 )"
-    trig140 = "( HLT_AK8PFJet140==1 && FatJet_pt[0] > 150 )"
-    trig200 = "( HLT_AK8PFJet200==1 && FatJet_pt[0] > 210 )"
-    trig260 = "( HLT_AK8PFJet260==1 && FatJet_pt[0] > 280 )"
-    trig320 = "( HLT_AK8PFJet320==1 && FatJet_pt[0] > 350 )"
-    trig400 = "( HLT_AK8PFJet400==1 && FatJet_pt[0] > 430 )"
-    trig450 = "( HLT_AK8PFJet450==1 && FatJet_pt[0] > 480 )"
-    trig500 = "( HLT_AK8PFJet500==1 && FatJet_pt[0] > 550 )"
-    if not is2017B:
-        trigHT = "(HLT_PFHT1050 == 1 || HLT_AK8PFHT850_TrimMass50 == 1 || HLT_AK8PFHT900_TrimMass50 == 1)"
-    else:
-        trigHT = "(HLT_PFHT1050 == 1)"
-    triglist = [ trig60, trig80, trig140, trig200, trig260, trig320, trig400, trig450, trig500, trigHT]
-else :
-    trig60  = "( HLT_PFJet60 ==1 && FatJet_pt[0] > 100 )"
-    trig80  = "( HLT_PFJet80 ==1 && FatJet_pt[0] > 160 )"
-    trig140 = "( HLT_PFJet140==1 && FatJet_pt[0] > 220 )"
-    trig200 = "( HLT_PFJet200==1 && FatJet_pt[0] > 310 )"
-    trig260 = "( HLT_PFJet260==1 && FatJet_pt[0] > 420 )"
-    trig320 = "( HLT_PFJet320==1 && FatJet_pt[0] > 510 )"
-    trig400 = "( HLT_PFJet400==1 && FatJet_pt[0] > 610 )"
-    trig450 = "( HLT_PFJet450==1 && FatJet_pt[0] > 720 )"
-    trigHT = "(HLT_PFHT900 == 1 || HLT_AK8PFHT650_TrimR0p1PT0p03Mass50 == 1 || HLT_AK8PFHT700_TrimR0p1PT0p03Mass50 == 1)"
-    triglist = [ trig60, trig80, trig140, trig200, trig260, trig320, trig400, trig450, trigHT]
-
-
-
-
-if isData  :
-    trigcuts = "(" +  ' || '.join( triglist ) + ")"
-    cuts = " && ".join( [ptcuts,trigcuts] )
-else :
-    cuts = ptcuts
-
-print 'Applying cuts : ' + cuts
-
-p1=PostProcessor( ".", inputFiles(), cuts, "keep_and_drop.txt",
+p1=PostProcessor( ".", inputFiles(), cut="", "keep_and_drop.txt",
                     modules=[nsubjettinessProducer()],
-                    provenance=True, fwkJobReport=True, jsonInput=None,
+                    provenance=True,
+                    fwkJobReport=True,
+                    jsonInput=runsAndLumis(),
                     haddFileName=haddname )
 
 p1.run()
