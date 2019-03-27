@@ -18,10 +18,10 @@ from Analysis.jetObservables.nSubProducer import nsubjettinessProducer
 
 # Output file name, and decide if this is MC or data
 haddname = "jetObservables_nanoskim.root"
-if any( ['JetHT' in i for i in inputFiles() ] ):
-    isData = True
-else :
-    isData = False
+#if any( ['JetHT' in i for i in inputFiles() ] ):
+#    isData = True
+#else :
+#    isData = False
 
 print '---------------------------------------------------'
 print 'Input files:'
@@ -77,11 +77,11 @@ print inputFiles()
 #
 #print 'Applying cuts : ' + cuts
 
-p1=PostProcessor( ".", inputFiles(), cut="", "keep_and_drop.txt",
+p1=PostProcessor( ".", inputFiles(), "", "keep_and_drop.txt",
                     modules=[nsubjettinessProducer()],
                     provenance=True,
                     fwkJobReport=True,
-                    jsonInput=runsAndLumis(),
+                    #jsonInput=runsAndLumis(),
                     haddFileName=haddname )
 
 p1.run()

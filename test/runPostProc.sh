@@ -24,9 +24,6 @@ mv src $CMSSW_BASE/src
 mv python $CMSSW_BASE/python
 
 echo Found Proxy in: $X509_USER_PROXY
-echo "sourcing FASTJET-contrib ......."
-source /cvmfs/cms.cern.ch/slc6_amd64_gcc630/external/fastjet-contrib/1.033-omkpbe/etc/profile.d/init.sh
-source /cvmfs/cms.cern.ch/slc6_amd64_gcc630/external/fastjet-contrib/1.033-omkpbe/etc/profile.d/dependencies-setup.sh
 echo "python  jetObservables_crab_extNanoAOD.py ......."
 python jetObservables_crab_extNanoAOD.py $1
 fi
