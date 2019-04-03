@@ -65,8 +65,9 @@ def submitJobs( job, inputFiles, unitJobs ):
     config.JobType.psetName = 'PSet.py'
 
     config.section_("Data")
-    config.Data.publication = True
-    config.Data.publishDBS = 'phys03'
+    #config.Data.publication = True
+    #config.Data.publishDBS = 'phys03'
+    config.Data.inputDBS = 'phys03'
 
     config.section_("Site")
     config.Site.storageSite = options.storageSite
@@ -88,10 +89,11 @@ def submitJobs( job, inputFiles, unitJobs ):
     config.JobType.inputFiles = [ 'PSet.py','runPostProc.sh', 'jetObservables_crab_extNanoAOD.py' ,'haddnano.py', 'keep_and_drop.txt']
     config.JobType.sendPythonFolder  = True
 
-    config.Data.userInputFiles = inputFiles
+    #config.Data.userInputFiles = inputFiles
+    config.Data.inputDataset = inputFiles
     config.Data.splitting = 'FileBased'
     config.Data.unitsPerJob = unitJobs
-    config.Data.outputPrimaryDataset = job
+    #config.Data.outputPrimaryDataset = job
 
     # since the input will have no metadata information, output can not be put in DBS
     config.JobType.outputFiles = [ 'jetObservables_nanoskim.root']
@@ -147,13 +149,25 @@ if __name__ == '__main__':
 
 
     dictSamples = {}
-    dictSamples['SingleMuon_Run2017'] = [ ['root://cmseos.fnal.gov//store/user/asparker/NanoAODJMARTools-skims//nanoskim-JetsandLepton-SingleMuon17B-trees.root', 'root://cmseos.fnal.gov//store/user/asparker/NanoAODJMARTools-skims//nanoskim-JetsandLepton-SingleMuon17C-trees.root', 'root://cmseos.fnal.gov//store/user/asparker/NanoAODJMARTools-skims//nanoskim-JetsandLepton-SingleMuon17D-trees.root', 'root://cmseos.fnal.gov//store/user/asparker/NanoAODJMARTools-skims//nanoskim-JetsandLepton-SingleMuon17E-trees.root', 'root://cmseos.fnal.gov//store/user/asparker/NanoAODJMARTools-skims//nanoskim-JetsandLepton-SingleMuon17F-trees.root' ], 1 ]
+    dictSamples['QCD_170to300'] = ['/QCD_Pt_170to300_TuneCUETP8M1_13TeV_pythia8/algomez-QCDPt170to300TuneCUETP8M113TeVpythia8RunIISummer16MiniAODv3-PUMoriond1794XmcRun2-dafc15ff64439ee3efd0c8e48ce3e57e/USER',1]
+    dictSamples['QCD_300to470'] = ['/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/algomez-QCDPt300to470TuneCUETP8M113TeVpythia8RunIISummer16MiniAODv3-PUMoriond1794XmcRun2-dafc15ff64439ee3efd0c8e48ce3e57e/USER',1]
+    dictSamples['QCD_470to600'] = ['/QCD_Pt_470to600_TuneCUETP8M1_13TeV_pythia8/algomez-QCDPt470to600TuneCUETP8M113TeVpythia8RunIISummer16MiniAODv3-PUMoriond1794XmcRun2-dafc15ff64439ee3efd0c8e48ce3e57e/USER',1]
+    dictSamples['QCD_600to800'] = ['/QCD_Pt_600to800_TuneCUETP8M1_13TeV_pythia8/algomez-QCDPt600to800TuneCUETP8M113TeVpythia8RunIISummer16MiniAODv3-PUMoriond1794XmcRun2-dafc15ff64439ee3efd0c8e48ce3e57e/USER',1]
+    dictSamples['QCD_800to1000'] = ['/QCD_Pt_800to1000_TuneCUETP8M1_13TeV_pythia8/algomez-QCDPt800to1000TuneCUETP8M113TeVpythia8RunIISummer16MiniAODv3-PUMoriond1794XmcRun2-dafc15ff64439ee3efd0c8e48ce3e57e/USER',1]
+    dictSamples['QCD_1000to1400'] = ['/QCD_Pt_1000to1400_TuneCUETP8M1_13TeV_pythia8/algomez-QCDPt1000to1400TuneCUETP8M113TeVpythia8RunIISummer16MiniAODv3-PUMoriond1794XmcRun2-dafc15ff64439ee3efd0c8e48ce3e57e/USER',1]
+    dictSamples['QCD_1400to1800'] = ['/QCD_Pt_1400to1800_TuneCUETP8M1_13TeV_pythia8/algomez-QCDPt1400to1800TuneCUETP8M113TeVpythia8RunIISummer16MiniAODv3-PUMoriond1794XmcRun2-dafc15ff64439ee3efd0c8e48ce3e57e/USER',1]
+    dictSamples['QCD_1800to2400'] = ['/QCD_Pt_1800to2400_TuneCUETP8M1_13TeV_pythia8/algomez-QCDPt1800to2400TuneCUETP8M113TeVpythia8RunIISummer16MiniAODv3-PUMoriond1794XmcRun2-dafc15ff64439ee3efd0c8e48ce3e57e/USER',1]
+    dictSamples['QCD_2400to3200'] = [ '/QCD_Pt_2400to3200_TuneCUETP8M1_13TeV_pythia8/algomez-QCDPt2400to3200TuneCUETP8M113TeVpythia8RunIISummer16MiniAODv3-PUMoriond1794XmcRun2-dafc15ff64439ee3efd0c8e48ce3e57e/USER',1]
+    dictSamples['QCD_3200toinf'] = ['/QCD_Pt_3200toInf_TuneCUETP8M1_13TeV_pythia8/algomez-QCDPt3200toInfTuneCUETP8M113TeVpythia8RunIISummer16MiniAODv3-PUMoriond1794XmcRun2-dafc15ff64439ee3efd0c8e48ce3e57e/USER',1]
 
-    dictSamples = {}
-    dictSamples['SingleElectron_Run2017'] = [ ['root://cmseos.fnal.gov//store/user/asparker/NanoAODJMARTools-skims/nanoskim-JetsandLepton-Data-SingleElectron17B-trees.root', 'root://cmseos.fnal.gov//store/user/asparker/NanoAODJMARTools-skims/nanoskim-JetsandLepton-Data-SingleElectron17C-trees.root', 'root://cmseos.fnal.gov//store/user/asparker/NanoAODJMARTools-skims/nanoskim-JetsandLepton-Data-SingleElectron17D-trees.root', 'root://cmseos.fnal.gov//store/user/asparker/NanoAODJMARTools-skims/nanoskim-JetsandLepton-Data-SingleElectron17E-trees.root', 'root://cmseos.fnal.gov//store/user/asparker/NanoAODJMARTools-skims/nanoskim-JetsandLepton-Data-SingleElectron17F-trees.root'], 1 ]
+    #/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8/algomez-TTTuneCUETP8M2T413TeV-powheg-pythia8RunIISummer16MiniAODv3-PUMoriond1794XmcRun2-dafc15ff64439ee3efd0c8e48ce3e57e/USER
+   #dictSamples['TTbar_2016'] = [ '/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8/algomez-TTTuneCUETP8M2T413TeV-powheg-pythia8RunIISummer16MiniAODv3-PUMoriond1794XmcRun2-dafc15ff64439ee3efd0c8e48ce3e57e/USER', 1 ]
 
-    dictSamples = {}
-    dictSamples['TTbar_2017'] = [ ['root://cmseos.fnal.gov//store/user/asparker/NanoAODJMARTools-skims/nanoskim-JetsandLepton-94XMC-TTJets_TuneCP5_13TeV-amcatnloFXFX-pythia8-1of3-trees.root', 'root://cmseos.fnal.gov//store/user/asparker/NanoAODJMARTools-skims/nanoskim-JetsandLepton-94XMC-TTJets_TuneCP5_13TeV-amcatnloFXFX-pythia8-2of3-trees.root', 'root://cmseos.fnal.gov//store/user/asparker/NanoAODJMARTools-skims/nanoskim-JetsandLepton-94XMC-TTJets_TuneCP5_13TeV-amcatnloFXFX-pythia8-3of3-trees.root', 'root://cmseos.fnal.gov//store/user/asparker/NanoAODJMARTools-skims/nanoskim-JetsandLepton-94XMC-TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8-trees.root' ], 1 ]
+    #dictSamples['SingleMuon_Run2017'] = [ ['root://cmseos.fnal.gov//store/user/asparker/NanoAODJMARTools-skims//nanoskim-JetsandLepton-SingleMuon17B-trees.root', 'root://cmseos.fnal.gov//store/user/asparker/NanoAODJMARTools-skims//nanoskim-JetsandLepton-SingleMuon17C-trees.root', 'root://cmseos.fnal.gov//store/user/asparker/NanoAODJMARTools-skims//nanoskim-JetsandLepton-SingleMuon17D-trees.root', 'root://cmseos.fnal.gov//store/user/asparker/NanoAODJMARTools-skims//nanoskim-JetsandLepton-SingleMuon17E-trees.root', 'root://cmseos.fnal.gov//store/user/asparker/NanoAODJMARTools-skims//nanoskim-JetsandLepton-SingleMuon17F-trees.root' ], 1 ]
+
+    #dictSamples['SingleElectron_Run2017'] = [ ['root://cmseos.fnal.gov//store/user/asparker/NanoAODJMARTools-skims/nanoskim-JetsandLepton-Data-SingleElectron17B-trees.root', 'root://cmseos.fnal.gov//store/user/asparker/NanoAODJMARTools-skims/nanoskim-JetsandLepton-Data-SingleElectron17C-trees.root', 'root://cmseos.fnal.gov//store/user/asparker/NanoAODJMARTools-skims/nanoskim-JetsandLepton-Data-SingleElectron17D-trees.root', 'root://cmseos.fnal.gov//store/user/asparker/NanoAODJMARTools-skims/nanoskim-JetsandLepton-Data-SingleElectron17E-trees.root', 'root://cmseos.fnal.gov//store/user/asparker/NanoAODJMARTools-skims/nanoskim-JetsandLepton-Data-SingleElectron17F-trees.root'], 1 ]
+
+    #dictSamples['TTbar_2017'] = [ ['root://cmseos.fnal.gov//store/user/asparker/NanoAODJMARTools-skims/nanoskim-JetsandLepton-94XMC-TTJets_TuneCP5_13TeV-amcatnloFXFX-pythia8-1of3-trees.root', 'root://cmseos.fnal.gov//store/user/asparker/NanoAODJMARTools-skims/nanoskim-JetsandLepton-94XMC-TTJets_TuneCP5_13TeV-amcatnloFXFX-pythia8-2of3-trees.root', 'root://cmseos.fnal.gov//store/user/asparker/NanoAODJMARTools-skims/nanoskim-JetsandLepton-94XMC-TTJets_TuneCP5_13TeV-amcatnloFXFX-pythia8-3of3-trees.root', 'root://cmseos.fnal.gov//store/user/asparker/NanoAODJMARTools-skims/nanoskim-JetsandLepton-94XMC-TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8-trees.root' ], 1 ]
 
     processingSamples = {}
     if 'all' in options.datasets:
