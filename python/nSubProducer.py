@@ -65,11 +65,11 @@ class nsubjettinessProducer(Module):
         self.minMuonMET = 40.
 
         ### Kinenatic Cuts Electrons ###
-        self.minTightElectronPt = 120.
-        self.minLooseElectronPt = 35.
-        self.range1ElectronEta = [0,1.442]
-        self.range2ElectronEta = [1.56,2.5]  
-        self.minElectronMET = 80.
+        # self.minTightElectronPt = 120.
+        # self.minLooseElectronPt = 35.
+        # self.range1ElectronEta = [0,1.442]
+        # self.range2ElectronEta = [1.56,2.5]  
+        # self.minElectronMET = 80.
 
         ### Kinematic Cuts b-jets ###
         self.minbJetPt = 30.
@@ -101,7 +101,7 @@ class nsubjettinessProducer(Module):
             self.out.branch("goodrecojet" + ijet + "_mass",  "F")
             self.out.branch("goodrecojet" + ijet + "_softdrop_mass",  "F")
             self.out.branch("MET",  "F")
-            #self.out.branch("_leptW_mass",  "F")
+            self.out.branch("leptonicW_pT",  "F")
             self.out.branch("goodrecojet" + ijet + "_tau21",  "F")
             self.out.branch("goodrecojet" + ijet + "_N21",  "F")
             #self.out.branch("goodrecojet" + ijet + "_Beta_4_W",  "F")
@@ -131,61 +131,61 @@ class nsubjettinessProducer(Module):
         
         jets = list(Collection(event, self.jetBranchName ))
         pfCands = list(Collection(event, self.pfCandsBranchName ))
-        electrons = list(Collection(event, self.electronBranchName))
+        #electrons = list(Collection(event, self.electronBranchName))
         muons = list(Collection(event, self.muonBranchName))
         bjets = list(Collection(event, self.AK4JetBranchName))
         met = Object(event, self.metBranchName)
-        muonTrigger = event.HLT_IsoMu24
-        electronTrigger = event.HLT_Ele115_CaloIdVT_GsfTrkIdT
+        muonTrigger = event.HLT_Mu50
+        #electronTrigger = event.HLT_Ele115_CaloIdVT_GsfTrkIdT
         
         #genJets = Collection(event, self.genJetBranchName )
         #genCands = Collection(event, self.genCandsBranchName )
 
         ### Applying selections as per recommendations of AN2016_215_v3 (Aarestad, T. et al) ###
         
-        # applying basic selections to loose leptons, to decide on veto or not
+        # applying basic selections to loose leptons, to decide on veto or not (only using muons for now)
 
-        if muonTrigger==0 and electronTrigger==0:
+        if muonTrigger==0:# and electronTrigger==0:
             return False
 
-        recoLooseElectrons  = [x for x in electrons if x.pt>self.minLooseElectronPt and ((self.range1ElectronEta[0]<abs(x.p4().Eta())<self.range1ElectronEta[1]) or (self.range2ElectronEta[0]<abs(x.p4().Eta())<self.range2ElectronEta[1]))] #HEEP??
+        #recoLooseElectrons  = [x for x in electrons if x.pt>self.minLooseElectronPt and ((self.range1ElectronEta[0]<abs(x.p4().Eta())<self.range1ElectronEta[1]) or (self.range2ElectronEta[0]<abs(x.p4().Eta())<self.range2ElectronEta[1]))] #HEEP??
 
         recoLooseMuons = [ x for x in muons if x.pt > self.minLooseMuonPt and abs(x.p4().Eta()) < self.maxLooseMuonEta ]   
-        recoLooseElectrons.sort(key=lambda x:x.pt, reverse=True)
+        #recoLooseElectrons.sort(key=lambda x:x.pt, reverse=True)
 
         recoLooseMuons.sort(key=lambda x:x.pt, reverse=True)
         
         recoLepton=ROOT.TLorentzVector()
         lepflag = -1
-        if len(recoLooseElectrons)+len(recoLooseMuons)!=1:
+        if len(recoLooseMuons)!=1:
             return False
 
         else:
-            if len(recoLooseElectrons)==1:
-                lepflag=0
-                #trigger here?
-                if electronTrigger==0: return False
-                if recoLooseElectrons[0].pt<self.minTightElectronPt:# or met.sumEt<self.minElectronMET:
-                    return False
-                recoLepton = recoLooseElectrons[0].p4()
+            #if len(recoLooseElectrons)==1:
+            #    lepflag=0
+            #    #trigger here?
+            #    if electronTrigger==0: return False
+            #    if recoLooseElectrons[0].pt<self.minTightElectronPt:# or met.sumEt<self.minElectronMET:
+            #        return False
+            #    recoLepton = recoLooseElectrons[0].p4()
             if len(recoLooseMuons)==1:
                 lepflag=1
                 if muonTrigger==0: return False
-                #trigger here?
                 if recoLooseMuons[0].pt<self.minTightMuonPt:# or met.sumEt<self.minMuonMET:
                     return False
                 recoLepton = recoLooseMuons[0].p4()
 
 
-        if lepflag==1 and met.pt<self.minElectronMET:
-            return False
-        if lepflag==0 and met.pt<self.minMuonMET:
+        # if lepflag==1 and met.pt<self.minElectronMET:
+        #     return False
+        if lepflag==1 and met.pt<self.minMuonMET:
             return False
         MET = ROOT.TLorentzVector()
         MET.SetPtEtaPhiE(met.pt, 0., met.phi, met.sumEt)
 
         leptonicWCand = MET+recoLepton
-
+        if leptonicWCand.pt<200:
+            return False
         ### applying basic selection to jets if any, remaining AK8 jets are thus hadronic  W Candidates
 
         recojets = [ x for x in jets if x.p4().Perp() > self.minJetPt and abs(x.p4().Eta()) < self.maxJetEta and (x.p4().DeltaR(recoLepton)>=1.) and self.minJetSDMass<x.msoftdrop<self.maxJetSDMass]
@@ -238,8 +238,12 @@ class nsubjettinessProducer(Module):
                 self.out.fillBranch("goodrecojet" + str(irecojet) + "_phi",  recojet.p4().Phi() )
                 self.out.fillBranch("goodrecojet" + str(irecojet) + "_mass",  recojet.p4().M() )
                 self.out.fillBranch("goodrecojet" + str(irecojet) + "_softdrop_mass", recojet.msoftdrop)
+                self.out.fillBranch("leptonicW_pT",leptonicWCand.pt )
+                self.out.branch("",  "F")
+
                 if irecojet==0:#prevent double-counting MET for the event
                     self.out.fillBranch("MET", met.pt)
+                    
                 #self.out.branch("_leptW_mass",  "F")
                 
                 if recojet.tau1 > 0.0: 
