@@ -238,7 +238,7 @@ class nsubjettinessProducer(Module):
                 self.out.fillBranch("goodrecojet" + str(irecojet) + "_phi",  recojet.p4().Phi() )
                 self.out.fillBranch("goodrecojet" + str(irecojet) + "_mass",  recojet.p4().M() )
                 self.out.fillBranch("goodrecojet" + str(irecojet) + "_softdrop_mass", recojet.msoftdrop)
-                self.out.fillBranch("leptonicW_pT",leptonicWCand.pt )
+                self.out.fillBranch("leptonicW_pT",leptonicWCand.p4().Pt() )
                 self.out.branch("",  "F")
 
                 if irecojet==0:#prevent double-counting MET for the event
