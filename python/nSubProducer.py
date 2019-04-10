@@ -184,7 +184,7 @@ class nsubjettinessProducer(Module):
         MET.SetPtEtaPhiE(met.pt, 0., met.phi, met.sumEt)
 
         leptonicWCand = MET+recoLepton
-        if leptonicWCand.pt<200:
+        if leptonicWCand.Perp()<200:
             return False
         ### applying basic selection to jets if any, remaining AK8 jets are thus hadronic  W Candidates
 
@@ -238,7 +238,7 @@ class nsubjettinessProducer(Module):
                 self.out.fillBranch("goodrecojet" + str(irecojet) + "_phi",  recojet.p4().Phi() )
                 self.out.fillBranch("goodrecojet" + str(irecojet) + "_mass",  recojet.p4().M() )
                 self.out.fillBranch("goodrecojet" + str(irecojet) + "_softdrop_mass", recojet.msoftdrop)
-                self.out.fillBranch("leptonicW_pT",leptonicWCand.p4().Pt() )
+                self.out.fillBranch("leptonicW_pT",leptonicWCand.Perp())
                 self.out.branch("",  "F")
 
                 if irecojet==0:#prevent double-counting MET for the event

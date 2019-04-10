@@ -152,7 +152,7 @@ if __name__ == '__main__':
     #dictSamples['BulkGravtoWW_M-3000'] = ['/BulkGravToWW_narrow_M-3000_13TeV-madgraph/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/MINIAODSIM',1]  
     dictSamples['SingleTop'] = ['/ST_t-channel_antitop_4f_inclusiveDecays_13TeV-powhegV2-madspin-pythia8_TuneCUETP8M1/algomez-STt-channelantitop4finclusiveDecays13TeV-powhegV2-madspin-pythia8TuneCUETP8M1-dafc15ff64439ee3efd0c8e48ce3e57e/USER',1]
     dictSamples['Wjets'] = ['/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/algomez-WJetsToLNuTuneCUETP8M113TeV-amcatnloFXFX-pythia8RunIISummer16MiniAODv3-PUMoriond1794X-dafc15ff64439ee3efd0c8e48ce3e57e/USER', 1]
-
+    dictSamples['SingleMuon2016'] = ['/SingleMuon/chmclean-SingleMuon_Run2016G-17Jul2018-v1-c59ef3ac16263506c0c61b1b9e3fa54b/USER',1]
     #dictSamples['BulkGravtoWW_M-2000'] = ['/BulkGravToWW_narrow_M-2000_13TeV-madgraph/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/MINIAODSIM',1]
     
     #dictSamples['QCD_170to300'] = ['/QCD_Pt_170to300_TuneCUETP8M1_13TeV_pythia8/algomez-QCDPt170to300TuneCUETP8M113TeVpythia8RunIISummer16MiniAODv3-PUMoriond1794XmcRun2-dafc15ff64439ee3efd0c8e48ce3e57e/USER',1]
