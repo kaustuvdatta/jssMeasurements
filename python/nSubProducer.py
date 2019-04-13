@@ -65,11 +65,11 @@ class nsubjettinessProducer(Module):
         self.minMuonMET = 40.
 
         ### Kinenatic Cuts Electrons ###
-        # self.minTightElectronPt = 120.
-        # self.minLooseElectronPt = 35.
-        # self.range1ElectronEta = [0,1.442]
-        # self.range2ElectronEta = [1.56,2.5]  
-        # self.minElectronMET = 80.
+        self.minTightElectronPt = 120.
+        self.minLooseElectronPt = 35.
+        self.range1ElectronEta = [0,1.442]
+        self.range2ElectronEta = [1.56,2.5]  
+        self.minElectronMET = 80.
 
         ### Kinematic Cuts b-jets ###
         self.minbJetPt = 30.
@@ -131,61 +131,44 @@ class nsubjettinessProducer(Module):
         
         jets = list(Collection(event, self.jetBranchName ))
         pfCands = list(Collection(event, self.pfCandsBranchName ))
-        #electrons = list(Collection(event, self.electronBranchName))
+        electrons = list(Collection(event, self.electronBranchName))
         muons = list(Collection(event, self.muonBranchName))
         bjets = list(Collection(event, self.AK4JetBranchName))
         met = Object(event, self.metBranchName)
         muonTrigger = event.HLT_Mu50
         #electronTrigger = event.HLT_Ele115_CaloIdVT_GsfTrkIdT
         
-        #genJets = Collection(event, self.genJetBranchName )
-        #genCands = Collection(event, self.genCandsBranchName )
-
         ### Applying selections as per recommendations of AN2016_215_v3 (Aarestad, T. et al) ###
         
         # applying basic selections to loose leptons, to decide on veto or not (only using muons for now)
 
-        if muonTrigger==0:# and electronTrigger==0:
-            return False
-
-        #recoLooseElectrons  = [x for x in electrons if x.pt>self.minLooseElectronPt and ((self.range1ElectronEta[0]<abs(x.p4().Eta())<self.range1ElectronEta[1]) or (self.range2ElectronEta[0]<abs(x.p4().Eta())<self.range2ElectronEta[1]))] #HEEP??
+        
+        recoLooseElectrons  = [x for x in electrons if x.pt>self.minLooseElectronPt and ((self.range1ElectronEta[0]<abs(x.p4().Eta())<self.range1ElectronEta[1]) or (self.range2ElectronEta[0]<abs(x.p4().Eta())<self.range2ElectronEta[1]))] #HEEP??
 
         recoLooseMuons = [ x for x in muons if x.pt > self.minLooseMuonPt and abs(x.p4().Eta()) < self.maxLooseMuonEta ]   
-        #recoLooseElectrons.sort(key=lambda x:x.pt, reverse=True)
-
+        recoLooseElectrons.sort(key=lambda x:x.pt, reverse=True)
         recoLooseMuons.sort(key=lambda x:x.pt, reverse=True)
         
         recoLepton=ROOT.TLorentzVector()
         lepflag = -1
-        if len(recoLooseMuons)!=1:
+        if len(recoLooseMuons)+len(recoLooseElectrons)==1:
+            if len(recoLooseMuons)==1:                
+                if muonTrigger==0: return False
+                if recoLooseMuons[0].pt<self.minTightMuonPt: return False
+                lepflag=1
+                recoLepton = recoLooseMuons[0].p4()
+            if len(recoLooseElectrons)==1:
+                return False
+        else:
             return False
 
-        else:
-            #if len(recoLooseElectrons)==1:
-            #    lepflag=0
-            #    #trigger here?
-            #    if electronTrigger==0: return False
-            #    if recoLooseElectrons[0].pt<self.minTightElectronPt:# or met.sumEt<self.minElectronMET:
-            #        return False
-            #    recoLepton = recoLooseElectrons[0].p4()
-            if len(recoLooseMuons)==1:
-                lepflag=1
-                if muonTrigger==0: return False
-                if recoLooseMuons[0].pt<self.minTightMuonPt:# or met.sumEt<self.minMuonMET:
-                    return False
-                recoLepton = recoLooseMuons[0].p4()
-
-
-        # if lepflag==1 and met.pt<self.minElectronMET:
-        #     return False
         if lepflag==1 and met.pt<self.minMuonMET:
             return False
         MET = ROOT.TLorentzVector()
         MET.SetPtEtaPhiE(met.pt, 0., met.phi, met.sumEt)
 
         leptonicWCand = MET+recoLepton
-        if leptonicWCand.Perp()<200:
-            return False
+
         ### applying basic selection to jets if any, remaining AK8 jets are thus hadronic  W Candidates
 
         recojets = [ x for x in jets if x.p4().Perp() > self.minJetPt and abs(x.p4().Eta()) < self.maxJetEta and (x.p4().DeltaR(recoLepton)>=1.) and self.minJetSDMass<x.msoftdrop<self.maxJetSDMass]
@@ -197,20 +180,15 @@ class nsubjettinessProducer(Module):
         
         recoAK8 = ROOT.TLorentzVector()
         recoAK8.SetPtEtaPhiM(recojets[0].pt,recojets[0].eta,recojets[0].phi,recojets[0].mass)
-
-        
+      
         ### applying basic selection to ak4-jets if any, if pass these are b-jet candidates
         recoAK4jets = [ x for x in bjets if x.p4().Perp() > self.minbJetPt and abs(x.p4().Eta()) < self.maxbJetEta and x.p4().DeltaR(recoLepton)>=0.3 and x.p4().DeltaR(recoAK8)>=0.8 and x.btagCSVV2 > self.minBDisc]
 
         recoAK4jets.sort(key=lambda x:x.p4().Perp(),reverse=True)
 
-        #mcjets = [ x for x in genJets if x.p4().Perp() > (self.minJetPt-20.) and abs(x.p4().Eta()) < self.maxObjEta ]
-
         if len(recoAK4jets)==0: #exit if no AK4-jets in event
             return False
-
-       
-
+        
         pfCandsVec = ROOT.vector("TLorentzVector")()
 
         for p in pfCands :
