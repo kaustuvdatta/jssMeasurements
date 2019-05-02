@@ -100,9 +100,8 @@ class nsubjettinessProducer(Module):
             self.out.branch("goodrecojet" + ijet + "_phi",  "F")
             self.out.branch("goodrecojet" + ijet + "_mass",  "F")
             self.out.branch("goodrecojet" + ijet + "_softdrop_mass",  "F")
-            self.out.branch("goodrecojet" + ijet + "_HT",  "F")
-            #self.out.branch("MET",  "F")
-            #self.out.branch("leptonicW_pT",  "F")
+            self.out.branch("MET",  "F")
+            self.out.branch("leptonicW_pT",  "F")
             self.out.branch("goodrecojet" + ijet + "_tau21",  "F")
             self.out.branch("goodrecojet" + ijet + "_N21",  "F")
             #self.out.branch("goodrecojet" + ijet + "_Beta_4_W",  "F")
@@ -125,24 +124,24 @@ class nsubjettinessProducer(Module):
         self.dummy+=1
         #if (self.dummy > 1000000): return False
         if self.verbose: print 'Event : ', event.event
-        if self.dummy%1000==0: print ("Analyzing events...", self.dummy)
+        if self.dummy%10000==0: print ("Analyzing events...", self.dummy)
             
 
         ### Get W->jj candidate ###
         
         jets = list(Collection(event, self.jetBranchName ))
         pfCands = list(Collection(event, self.pfCandsBranchName ))
-        #electrons = list(Collection(event, self.electronBranchName))
-        #muons = list(Collection(event, self.muonBranchName))
-        #bjets = list(Collection(event, self.AK4JetBranchName))
-        #met = Object(event, self.metBranchName)
-        #muonTrigger = event.HLT_Mu50
+        electrons = list(Collection(event, self.electronBranchName))
+        muons = list(Collection(event, self.muonBranchName))
+        bjets = list(Collection(event, self.AK4JetBranchName))
+        met = Object(event, self.metBranchName)
+        muonTrigger = event.HLT_Mu50
         #electronTrigger = event.HLT_Ele115_CaloIdVT_GsfTrkIdT
         
         ### Applying selections as per recommendations of AN2016_215_v3 (Aarestad, T. et al) ###
         
         # applying basic selections to loose leptons, to decide on veto or not (only using muons for now)
-        '''
+
         
         recoLooseElectrons  = [x for x in electrons if x.pt>self.minLooseElectronPt and ((self.range1ElectronEta[0]<abs(x.p4().Eta())<self.range1ElectronEta[1]) or (self.range2ElectronEta[0]<abs(x.p4().Eta())<self.range2ElectronEta[1]))] #HEEP??
 
@@ -171,35 +170,26 @@ class nsubjettinessProducer(Module):
         leptonicWCand = MET+recoLepton
 
         ### applying basic selection to jets if any, remaining AK8 jets are thus hadronic  W Candidates
-        '''
 
-        recojets = [ x for x in jets if x.p4().Perp() > self.minJetPt and abs(x.p4().Eta()) < self.maxJetEta]# and abs(x.p4().DeltaR(recoLepton))>=1. and self.minJetSDMass<x.msoftdrop<self.maxJetSDMass]
+        recojets = [ x for x in jets if x.p4().Perp() > self.minJetPt and abs(x.p4().Eta()) < self.maxJetEta and abs(x.p4().DeltaR(recoLepton))>=1. and self.minJetSDMass<x.msoftdrop<self.maxJetSDMass]
         recojets.sort(key=lambda x:x.p4().Perp(),reverse=True)
-        
+
+
         #mcjets = [ x for x in genJets if x.p4().Perp() > (self.minJeasdasdtPt-20.) and abs(x.p4().Eta()) < self.maxObjEta ]
 
         if len(recojets)==0: #exit if no AK8jets in event
             return False
         
-        
-        ak8HT = 0.
-        for x in recojets:
-           ak8HT = ak8HT+x.p4().Perp() 
-        
-        if ak8HT<900.:
-            return False
-
-
-        #recoAK8 = ROOT.TLorentzVector()
-        #recoAK8.SetPtEtaPhiM(recojets[0].pt,recojets[0].eta,recojets[0].phi,recojets[0].mass)
+        recoAK8 = ROOT.TLorentzVector()
+        recoAK8.SetPtEtaPhiM(recojets[0].pt,recojets[0].eta,recojets[0].phi,recojets[0].mass)
       
         ### applying basic selection to ak4-jets if any, if pass these are b-jet candidates
-        #recoAK4jets = [ x for x in bjets if x.p4().Perp() > self.minbJetPt and abs(x.p4().Eta()) < self.maxbJetEta and abs(x.p4().DeltaR(recoLepton))>=0.3 and abs(x.p4().DeltaR(recoAK8))>=0.8 and x.btagCSVV2 > self.minBDisc]
+        recoAK4jets = [ x for x in bjets if x.p4().Perp() > self.minbJetPt and abs(x.p4().Eta()) < self.maxbJetEta and abs(x.p4().DeltaR(recoLepton))>=0.3 and abs(x.p4().DeltaR(recoAK8))>=0.8 and x.btagCSVV2 > self.minBDisc]
 
-        #recoAK4jets.sort(key=lambda x:x.p4().Perp(),reverse=True)
+        recoAK4jets.sort(key=lambda x:x.p4().Perp(),reverse=True)
 
-        #if len(recoAK4jets)==0: #exit if no AK4-jets in event
-        #    return False
+        if len(recoAK4jets)==0: #exit if no AK4-jets in event
+            return False
         
         pfCandsVec = ROOT.vector("TLorentzVector")()
 
@@ -228,13 +218,11 @@ class nsubjettinessProducer(Module):
                 self.out.fillBranch("goodrecojet" + str(irecojet) + "_phi",  recojet.p4().Phi() )
                 self.out.fillBranch("goodrecojet" + str(irecojet) + "_mass",  recojet.p4().M() )
                 self.out.fillBranch("goodrecojet" + str(irecojet) + "_softdrop_mass", recojet.msoftdrop)
-                self.out.fillBranch("goodrecojet" + str(irecojet) + "_HT",  ak8HT)
+                self.out.fillBranch("leptonicW_pT",leptonicWCand.Perp())
+                self.out.branch("",  "F")
 
-                #self.out.fillBranch("leptonicW_pT",leptonicWCand.Perp())
-                #self.out.branch("",  "F")
-
-                #if irecojet==0:#prevent double-counting MET for the event
-                #    self.out.fillBranch("MET", met.pt)
+                if irecojet==0:#prevent double-counting MET for the event
+                    self.out.fillBranch("MET", met.pt)
                     
                 #self.out.branch("_leptW_mass",  "F")
                 
