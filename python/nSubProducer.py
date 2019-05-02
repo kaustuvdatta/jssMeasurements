@@ -100,9 +100,8 @@ class nsubjettinessProducer(Module):
             self.out.branch("goodrecojet" + ijet + "_phi",  "F")
             self.out.branch("goodrecojet" + ijet + "_mass",  "F")
             self.out.branch("goodrecojet" + ijet + "_softdrop_mass",  "F")
-            self.out.branch("goodrecojet" + ijet + "_HT",  "F")
-            #self.out.branch("MET",  "F")
-            #self.out.branch("leptonicW_pT",  "F")
+            self.out.branch("MET",  "F")
+            self.out.branch("leptonicW_pT",  "F")
             self.out.branch("goodrecojet" + ijet + "_tau21",  "F")
             self.out.branch("goodrecojet" + ijet + "_N21",  "F")
             #self.out.branch("goodrecojet" + ijet + "_Beta_4_W",  "F")
@@ -124,29 +123,29 @@ class nsubjettinessProducer(Module):
 
         self.dummy+=1
         #if (self.dummy > 1000000): return False
-        if self.verbose: print 'Event : ', event.event
-        if self.dummy%1000==0: print ("Analyzing events...", self.dummy)
+        if self.verbose: print ('Event : ', event.event)
+        #if self.dummy%5000==0: print ("Analyzing events...", self.dummy)
             
 
         ### Get W->jj candidate ###
         
         jets = list(Collection(event, self.jetBranchName ))
         pfCands = list(Collection(event, self.pfCandsBranchName ))
-        #electrons = list(Collection(event, self.electronBranchName))
-        #muons = list(Collection(event, self.muonBranchName))
-        #bjets = list(Collection(event, self.AK4JetBranchName))
-        #met = Object(event, self.metBranchName)
-        #muonTrigger = event.HLT_Mu50
+        electrons = list(Collection(event, self.electronBranchName))
+        muons = list(Collection(event, self.muonBranchName))
+        bjets = list(Collection(event, self.AK4JetBranchName))
+        met = Object(event, self.metBranchName)
+        muonTrigger = event.HLT_Mu50
         #electronTrigger = event.HLT_Ele115_CaloIdVT_GsfTrkIdT
         
         ### Applying selections as per recommendations of AN2016_215_v3 (Aarestad, T. et al) ###
         
         # applying basic selections to loose leptons, to decide on veto or not (only using muons for now)
-        '''
-        
-        recoLooseElectrons  = [x for x in electrons if x.pt>self.minLooseElectronPt and ((self.range1ElectronEta[0]<abs(x.p4().Eta())<self.range1ElectronEta[1]) or (self.range2ElectronEta[0]<abs(x.p4().Eta())<self.range2ElectronEta[1]))] #HEEP??
 
-        recoLooseMuons = [ x for x in muons if x.pt > self.minLooseMuonPt and abs(x.p4().Eta()) < self.maxLooseMuonEta ]   
+        
+        recoLooseElectrons  = [x for x in electrons if x.pt>self.minLooseElectronPt and x.cutBased_HEEP and ((self.range1ElectronEta[0]<abs(x.p4().Eta())<self.range1ElectronEta[1]) or (self.range2ElectronEta[0]<abs(x.p4().Eta())<self.range2ElectronEta[1]))] #HEEP??
+
+        recoLooseMuons = [ x for x in muons if x.pt > self.minLooseMuonPt and abs(x.p4().Eta()) < self.maxLooseMuonEta and x.pfRelIso03_all < 0.1]   
         recoLooseElectrons.sort(key=lambda x:x.pt, reverse=True)
         recoLooseMuons.sort(key=lambda x:x.pt, reverse=True)
         
@@ -169,48 +168,45 @@ class nsubjettinessProducer(Module):
         MET.SetPtEtaPhiE(met.pt, 0., met.phi, met.sumEt)
 
         leptonicWCand = MET+recoLepton
-
+	
         ### applying basic selection to jets if any, remaining AK8 jets are thus hadronic  W Candidates
-        '''
 
-        recojets = [ x for x in jets if x.p4().Perp() > self.minJetPt and abs(x.p4().Eta()) < self.maxJetEta]# and abs(x.p4().DeltaR(recoLepton))>=1. and self.minJetSDMass<x.msoftdrop<self.maxJetSDMass]
+        recojets = [ x for x in jets if x.p4().Perp() > self.minJetPt and abs(x.p4().Eta()) < self.maxJetEta and x.msoftdrop>self.minJetSDMass]
         recojets.sort(key=lambda x:x.p4().Perp(),reverse=True)
-        
+	
         #mcjets = [ x for x in genJets if x.p4().Perp() > (self.minJeasdasdtPt-20.) and abs(x.p4().Eta()) < self.maxObjEta ]
 
-        if len(recojets)==0: #exit if no AK8jets in event
+        if len(recojets)<1: #exit if no AK8jets in event
             return False
         
+        recoAK8 = ROOT.TLorentzVector()
+        recoAK8.SetPtEtaPhiM(recojets[0].pt,recojets[0].eta,recojets[0].phi,recojets[0].mass)
+        dR_AK8Lepton = recoAK8.DeltaR(recoLepton)
+	if abs(dR_AK8Lepton)<1. : return False #no lepton overlap this way
+
+        ### applying basic selection to ak4-jets if any, if passed these are b-jet candidates
+        recoAK4jets = [ x for x in bjets if x.p4().Perp() > self.minbJetPt and abs(x.p4().Eta()) < self.maxbJetEta and x.btagCSVV2 > self.minBDisc]
+	
+	if len(recoAK4jets)<1: return False #exit if no AK4-jets in event
         
-        ak8HT = 0.
-        for x in recojets:
-           ak8HT = ak8HT+x.p4().Perp() 
-        
-        if ak8HT<900.:
+
+	recoAK4 = ROOT.TLorentzVector()
+	recoAK4.SetPtEtaPhiM(recoAK4jets[0].pt, recoAK4jets[0].eta,recoAK4jets[0].phi,recoAK4jets[0].mass)
+	if recoAK4.DeltaR(recoLepton)<0.3:
+	    return False
+	if abs(recoAK4.DeltaR(recoAK8))<0.8:
             return False
 
 
-        #recoAK8 = ROOT.TLorentzVector()
-        #recoAK8.SetPtEtaPhiM(recojets[0].pt,recojets[0].eta,recojets[0].phi,recojets[0].mass)
-      
-        ### applying basic selection to ak4-jets if any, if pass these are b-jet candidates
-        #recoAK4jets = [ x for x in bjets if x.p4().Perp() > self.minbJetPt and abs(x.p4().Eta()) < self.maxbJetEta and abs(x.p4().DeltaR(recoLepton))>=0.3 and abs(x.p4().DeltaR(recoAK8))>=0.8 and x.btagCSVV2 > self.minBDisc]
-
-        #recoAK4jets.sort(key=lambda x:x.p4().Perp(),reverse=True)
-
-        #if len(recoAK4jets)==0: #exit if no AK4-jets in event
-        #    return False
-        
         pfCandsVec = ROOT.vector("TLorentzVector")()
 
         for p in pfCands :
             pfCandsVec.push_back( ROOT.TLorentzVector( p.p4().Px(), p.p4().Py(), p.p4().Pz(), p.p4().E()) )
         
-        #print recojets
-        for irecojet,recojet in enumerate(recojets):
-            ##recojetsGroomed[irecojet] = {}
-            # Cluster only the particles near the appropriate jet to save time
 
+        for irecojet,recojet in enumerate(recojets):
+
+            # Cluster only the particles near the appropriate jet to save time
             constituents = ROOT.vector("TLorentzVector")()
 
             for x in pfCandsVec:
@@ -221,22 +217,15 @@ class nsubjettinessProducer(Module):
                     nsub1 = self.nSub1.getTau( self.maxTau, constituents )
                     nsub2 = self.nSub2.getTau( self.maxTau, constituents )
                     
-            if (irecojet < 1 ): #to extract only the leading and sub-leading jets 
-                #print "irecojet", irecojet
+            if (irecojet < 1 ): #to extract only the leading jet
+
                 self.out.fillBranch("goodrecojet" + str(irecojet) + "_pt",  recojet.p4().Pt() )
                 self.out.fillBranch("goodrecojet" + str(irecojet) + "_eta",  recojet.p4().Eta() )
                 self.out.fillBranch("goodrecojet" + str(irecojet) + "_phi",  recojet.p4().Phi() )
                 self.out.fillBranch("goodrecojet" + str(irecojet) + "_mass",  recojet.p4().M() )
                 self.out.fillBranch("goodrecojet" + str(irecojet) + "_softdrop_mass", recojet.msoftdrop)
-                self.out.fillBranch("goodrecojet" + str(irecojet) + "_HT",  ak8HT)
-
-                #self.out.fillBranch("leptonicW_pT",leptonicWCand.Perp())
-                #self.out.branch("",  "F")
-
-                #if irecojet==0:#prevent double-counting MET for the event
-                #    self.out.fillBranch("MET", met.pt)
-                    
-                #self.out.branch("_leptW_mass",  "F")
+                self.out.fillBranch("leptonicW_pT",leptonicWCand.Perp())
+                self.out.fillBranch("MET", met.pt)
                 
                 if recojet.tau1 > 0.: 
                     tau21 = recojet.tau2/recojet.tau1
@@ -245,34 +234,12 @@ class nsubjettinessProducer(Module):
                     
                 self.out.fillBranch("goodrecojet" + str(irecojet) + "_tau21", tau21)
                 self.out.fillBranch("goodrecojet" + str(irecojet) + "_N21",  recojet.n2b1)
-                #self.out.fillbranch("goodrecojet" + str(irecojet) + "_Beta_4_W",  "F")
-                
 
                 for tauN in range(self.maxTau):
                     self.out.fillBranch("goodrecojet" + str(irecojet) + "_tau_0p5_"+str(tauN),  nsub0p5[tauN]  )
                     self.out.fillBranch("goodrecojet" + str(irecojet) + "_tau_1_"+str(tauN),  nsub1[tauN]  )
                     self.out.fillBranch("goodrecojet" + str(irecojet) + "_tau_2_"+str(tauN),  nsub2[tauN]  )
-                continue
-            '''
-            ### Need to add further selections to differentiate fully and partially merged t/~t jets, we want partially merged with the more massive jet as our W candidate or the more massive subjet in a fully merged t/~t jet as the W candidate?
-            
-
-
-            if self.verbose:
-
-                for i,sdjet in enumerate(sdjets):
-                    print '-------'
-                    print "On-the-fly PF jets:"
-                    print ' %5d: %6.2f %6.2f %6.2f %6.2f' % (irecojet, sdjet.perp(), sdjet.eta(), sdjet.phi(), sdjet.m())
-                    for i in range(len(nsub0p5)): print 'tau'+str(i), nsub0p5[i], nsub1[i], nsub2[i]
-                    print 'Subjets:'
-
-                    subs = sdjet.pieces()
-
-                    for j,sub in enumerate(subs):
-                        print '      : %6.2f %6.2f %6.2f %6.2f' % (sub.perp(), sub.eta(), sub.phi(), sub.m())
-
-            '''
+                
         return True
 
     ##################### Helpful functions
