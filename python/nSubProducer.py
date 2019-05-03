@@ -100,8 +100,6 @@ class nsubjettinessProducer(Module):
             self.out.branch("goodrecojet" + ijet + "_phi",  "F")
             self.out.branch("goodrecojet" + ijet + "_mass",  "F")
             self.out.branch("goodrecojet" + ijet + "_softdrop_mass",  "F")
-            self.out.branch("MET",  "F")
-            self.out.branch("leptonicW_pT",  "F")
             self.out.branch("goodrecojet" + ijet + "_tau21",  "F")
             self.out.branch("goodrecojet" + ijet + "_N21",  "F")
             #self.out.branch("goodrecojet" + ijet + "_Beta_4_W",  "F")
@@ -110,6 +108,10 @@ class nsubjettinessProducer(Module):
                 self.out.branch("goodrecojet" + ijet + "_tau_0p5_"+str(tauN),  "F")
                 self.out.branch("goodrecojet" + ijet + "_tau_1_"+str(tauN),  "F")
                 self.out.branch("goodrecojet" + ijet + "_tau_2_"+str(tauN),  "F")
+	    self.out.branch("MET",  "F")
+            self.out.branch("leptonicW_pT",  "F")            
+	    self.out.branch("lepton_pT",  "F")
+
         pass
 
 
@@ -122,7 +124,7 @@ class nsubjettinessProducer(Module):
         #isMC = event.run == 1
 
         self.dummy+=1
-        #if (self.dummy > 1000000): return False
+        #if (self.dummy > 10000): return False
         if self.verbose: print ('Event : ', event.event)
         #if self.dummy%5000==0: print ("Analyzing events...", self.dummy)
             
@@ -143,7 +145,7 @@ class nsubjettinessProducer(Module):
         # applying basic selections to loose leptons, to decide on veto or not (only using muons for now)
 
         
-        recoLooseElectrons  = [x for x in electrons if x.pt>self.minLooseElectronPt and x.cutBased_HEEP and ((self.range1ElectronEta[0]<abs(x.p4().Eta())<self.range1ElectronEta[1]) or (self.range2ElectronEta[0]<abs(x.p4().Eta())<self.range2ElectronEta[1]))] #HEEP??
+        recoLooseElectrons  = [x for x in electrons if x.pt>self.minLooseElectronPt and x.cutBased_HEEP]
 
         recoLooseMuons = [ x for x in muons if x.pt > self.minLooseMuonPt and abs(x.p4().Eta()) < self.maxLooseMuonEta and x.pfRelIso03_all < 0.1]   
         recoLooseElectrons.sort(key=lambda x:x.pt, reverse=True)
@@ -174,7 +176,6 @@ class nsubjettinessProducer(Module):
         recojets = [ x for x in jets if x.p4().Perp() > self.minJetPt and abs(x.p4().Eta()) < self.maxJetEta and x.msoftdrop>self.minJetSDMass]
         recojets.sort(key=lambda x:x.p4().Perp(),reverse=True)
 	
-        #mcjets = [ x for x in genJets if x.p4().Perp() > (self.minJeasdasdtPt-20.) and abs(x.p4().Eta()) < self.maxObjEta ]
 
         if len(recojets)<1: #exit if no AK8jets in event
             return False
@@ -182,7 +183,7 @@ class nsubjettinessProducer(Module):
         recoAK8 = ROOT.TLorentzVector()
         recoAK8.SetPtEtaPhiM(recojets[0].pt,recojets[0].eta,recojets[0].phi,recojets[0].mass)
         dR_AK8Lepton = recoAK8.DeltaR(recoLepton)
-	if abs(dR_AK8Lepton)<1. : return False #no lepton overlap this way
+	if abs(dR_AK8Lepton)<1. : return False #take care of lepton overlap
 
         ### applying basic selection to ak4-jets if any, if passed these are b-jet candidates
         recoAK4jets = [ x for x in bjets if x.p4().Perp() > self.minbJetPt and abs(x.p4().Eta()) < self.maxbJetEta and x.btagCSVV2 > self.minBDisc]
@@ -192,7 +193,7 @@ class nsubjettinessProducer(Module):
 
 	recoAK4 = ROOT.TLorentzVector()
 	recoAK4.SetPtEtaPhiM(recoAK4jets[0].pt, recoAK4jets[0].eta,recoAK4jets[0].phi,recoAK4jets[0].mass)
-	if recoAK4.DeltaR(recoLepton)<0.3:
+	if abs(recoAK4.DeltaR(recoLepton))<0.3:
 	    return False
 	if abs(recoAK4.DeltaR(recoAK8))<0.8:
             return False
@@ -224,7 +225,8 @@ class nsubjettinessProducer(Module):
                 self.out.fillBranch("goodrecojet" + str(irecojet) + "_phi",  recojet.p4().Phi() )
                 self.out.fillBranch("goodrecojet" + str(irecojet) + "_mass",  recojet.p4().M() )
                 self.out.fillBranch("goodrecojet" + str(irecojet) + "_softdrop_mass", recojet.msoftdrop)
-                self.out.fillBranch("leptonicW_pT",leptonicWCand.Perp())
+                self.out.fillBranch("leptonicW_pT",leptonicWCand.Perp())                	
+                self.out.fillBranch("lepton_pT",recoLepton.Perp())
                 self.out.fillBranch("MET", met.pt)
                 
                 if recojet.tau1 > 0.: 

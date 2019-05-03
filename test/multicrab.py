@@ -158,12 +158,19 @@ if __name__ == '__main__':
     dictSamples['Wjets_1'] = ['/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/algomez-WJetsToLNuTuneCUETP8M113TeV-amcatnloFXFX-pythia8RunIISummer16MiniAODv3-PUMoriond1794X-dafc15ff64439ee3efd0c8e48ce3e57e/USER', 1]
 
     dictSamples['Wjets_2'] = ['/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/algomez-WJetsToLNuTuneCUETP8M113TeV-amcatnloFXFX-pythia8RunIISummer16MiniAODv3-PUMoriond1794X_ext2-v1-dafc15ff64439ee3efd0c8e48ce3e57e/USER', 1]
+    
+    dictSamples['SingleMuon2016B'] = ['/SingleMuon/algomez-SingleMuon_Run2016B-17Jul2018_ver2-v1-c59ef3ac16263506c0c61b1b9e3fa54b/USER',1]
 
+    dictSamples['SingleMuon2016C'] = ['/SingleMuon/algomez-SingleMuon_Run2016C-17Jul2018-v1-c59ef3ac16263506c0c61b1b9e3fa54b/USER',1]
+
+    dictSamples['SingleMuon2016E'] = ['/SingleMuon/algomez-SingleMuon_Run2016E-17Jul2018-v1-c59ef3ac16263506c0c61b1b9e3fa54b/USER',1]
+    
     dictSamples['SingleMuon2016G'] = ['/SingleMuon/chmclean-SingleMuon_Run2016G-17Jul2018-v1-c59ef3ac16263506c0c61b1b9e3fa54b/USER',1]
 
     dictSamples['SingleMuon2016H'] = ['/SingleMuon/kadatta-SingleMuon_Run2016H-17Jul2018-v1-5ffac30f2c7d804e43ff60dc5e74139f/USER',1]
     
     dictSamples['TTbar_1'] = [ '/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8/algomez-TTTuneCUETP8M2T413TeV-powheg-pythia8RunIISummer16MiniAODv3-PUMoriond1794XmcRun2-dafc15ff64439ee3efd0c8e48ce3e57e/USER', 1 ]
+
     dictSamples['TTbar_2'] = ['/TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/algomez-TTJetsTuneCUETP8M113TeV-madgraphMLM-pythia8RunIISummer16MiniAODv3-PUMoriond1794XmcRun2-dafc15ff64439ee3efd0c8e48ce3e57e/USER', 1]
 
 #dictSamples['BulkGravtoWW_M-2000'] = ['/BulkGravToWW_narrow_M-2000_13TeV-madgraph/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/MINIAODSIM',1]
