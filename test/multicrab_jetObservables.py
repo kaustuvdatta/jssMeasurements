@@ -88,7 +88,8 @@ def submitJobs( job, inputFiles, unitJobs ):
     config.JobType.inputFiles = [ 'PSet.py','runPostProc.sh', 'jetObservables_crab_extNanoAOD.py' ,'haddnano.py', 'keep_and_drop.txt']
     config.JobType.sendPythonFolder  = True
 
-    config.Data.userInputFiles = inputFiles
+    #config.Data.userInputFiles = inputFiles
+    config.Data.inputDataset = inputFiles
     config.Data.splitting = 'FileBased'
     config.Data.unitsPerJob = unitJobs
     config.Data.outputPrimaryDataset = job
