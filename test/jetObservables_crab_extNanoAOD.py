@@ -14,7 +14,9 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 from PhysicsTools.NanoAODTools.postprocessing.framework.crabhelper import inputFiles,runsAndLumis
 
 # our module
-from Analysis.jetObservables.nSubProducer import nsubjettinessProducer
+#from Analysis.jetObservables.nSubProducer import nsubjettinessProducer
+#from Analysis.jetObservables.nSubProducer_WP import nsubjettinessProducer     
+from Analysis.jetObservables.nSubProducer_matched_TTSemilept import nsubjettinessProducer
 
 # Output file name, and decide if this is MC or data
 haddname = "jetObservables_nanoskim.root"

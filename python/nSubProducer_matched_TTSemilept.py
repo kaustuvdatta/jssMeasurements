@@ -108,7 +108,17 @@ class nsubjettinessProducer(Module):
                 self.out.branch("goodrecojet" + ijet + "_tau_0p5_"+str(tauN),  "F")
                 self.out.branch("goodrecojet" + ijet + "_tau_1_"+str(tauN),  "F")
                 self.out.branch("goodrecojet" + ijet + "_tau_2_"+str(tauN),  "F")
-	    self.out.branch("MET",  "F")
+            self.out.branch("genmatchedrecoAK8",  "I")
+            self.out.branch("PID_mW",  "I")
+	    self.out.branch("PID_umW",  "I")
+	    self.out.branch("PID_W",  "I")
+            self.out.branch("GPIdx_W",  "I")
+	    self.out.branch("lepFlag", "I")
+	    self.out.branch("dR_AK8qi_mW",  "F")
+            self.out.branch("dR_AK8motherW_mW",  "F")
+            self.out.branch("dR_AK8qi_umW",  "F")
+            self.out.branch("dR_AK8motherW_W",  "F")
+            self.out.branch("MET",  "F")
             self.out.branch("leptonicW_pT",  "F")            
 	    self.out.branch("lepton_pT",  "F")
 
@@ -121,14 +131,55 @@ class nsubjettinessProducer(Module):
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
         
-        #isMC = event.run == 1
+        isMC = event.run == 1
 
         self.dummy+=1
         #if (self.dummy > 10000): return False
         if self.verbose: print ('Event : ', event.event)
         if self.dummy%5000==0: print ("Analyzing events...", self.dummy)
-            
+        
 
+	if isMC==True:
+	    #list real W's, match gen-level hadronically daughting W's to selected W candidate jets at reco-level
+            genParticles = Collection(event, "GenPart")
+	    genWmoms = []
+	    genWdaughts = []
+            
+            
+            Tmom = [x for x in genParticles if x.pt>10 and abs(x.pdgId)==6]
+            Tdaughts = [x for x in genParticles if x.pt>1 and (abs(x.pdgId)==5 or abs(x.pdgId)==24)]
+
+            Wdaughts = [x for x in genParticles if x.pt>1. and 0<abs(x.pdgId)<9]
+	    
+	    Wmom = [x for x in genParticles if x.pt>10. and abs(x.pdgId)==24]
+   
+	    #if self.dummy%500==0:
+	    # 	for x in Wdaughts:
+            #	    print "Wdaught:", x.pdgId, x.genPartIdxMother, x.statusFlags
+            #	for x in Wmom:
+            #	    print "Wmom:", x.pdgId, x.genPartIdxMother, x.statusFlags
+
+	    if len(Wdaughts)>0 and len(Wmom)>0 and len(Tdaughts)>0 and len(Tmom)>0 :
+                for x in Wdaughts:
+                    for y in Wmom:
+                        try:
+                            if y==Wmom[x.genPartIdxMother] and (y in Tdaughts):
+                                self.out.fillBranch("PID_W",y.pdgId)
+                                #print y, "W from top decaying to qq"
+                                #self.out.fillBranch("GPIdx_W",x.genPartIdxMother)
+                                genWmoms.append(y)
+                                genWdaughts.append(x)
+                                        
+                        except:
+                            continue
+                                
+            #if self.dummy%500==0:
+            #    for x in genWdaughts: print "gen part dec", self.dummy, x.pdgId, x.genPartIdxMother, x.statusFlags
+
+            #if self.dummy%500==0:
+            #    for x in genWmoms: print "gen part mom", self.dummy, x.pdgId, x.genPartIdxMother, x.statusFlags
+            
+            
         ### Get W->jj candidate ###
         
         jets = list(Collection(event, self.jetBranchName ))
@@ -197,6 +248,47 @@ class nsubjettinessProducer(Module):
 	    return False
 	if abs(recoAK4.DeltaR(recoAK8))<0.8:
             return False
+        
+        self.realW = 0
+        '''
+         self.out.branch("PID_mW",  "I")
+            self.out.branch("GPIdx_mW",  "I")
+	    self.out.branch("PID_umW",  "I")
+            self.out.branch("GPIdx_umW",  "I")
+	    self.out.branch("PID_W",  "I")
+            self.out.branch("GPIdx_W",  "I")
+            self.out.branch("GPIdx_W",  "I")
+        '''
+
+        if isMC:
+            for W in genWmoms:
+                genW_4v = ROOT.TLorentzVector()
+                genW_4v.SetPtEtaPhiM(W.pt,W.eta,W.phi,W.mass)
+                
+                #self.out.fillBranch("dR_AK8motherW_W", abs(recoAK8.DeltaR(genW_4v)))
+                if abs(recoAK8.DeltaR(genW_4v))<0.7:
+                    #self.out.fillBranch("dR_AK8motherW_mW", abs(recoAK8.DeltaR(genW_4v)))
+                    #    self.out.fillBranch("dR_AK8qi_mW", abs(recoAK8.DeltaR(gendec_4v)))
+                    #self.out.fillBranch("PID_mW", W.pdgId)
+
+                    ndec = 0
+                    for Wdec in genWdaughts:
+                        #self.out.fillBranch("dR_AK8motherW_W", abs(recoAK8.DeltaR(genW_4v)))
+                        gendec_4v = ROOT.TLorentzVector()
+                        gendec_4v.SetPtEtaPhiM(Wdec.pt,Wdec.eta,Wdec.phi,Wdec.mass)
+                    
+                        if abs(recoAK8.DeltaR(gendec_4v))<0.4:
+                            ndec +=1
+
+                    if ndec>1: 
+                        self.out.fillBranch("dR_AK8motherW_mW", abs(recoAK8.DeltaR(genW_4v)))
+                        self.out.fillBranch("dR_AK8qi_mW", abs(recoAK8.DeltaR(gendec_4v)))
+                        self.out.fillBranch("PID_mW", W.pdgId)
+                        self.realW = 1
+                    else: 
+                        #self.out.fillBranch("dR_AK8qi_umW" abs(recoAK8.DeltaR(gendec_4v)))                     
+                        self.out.fillBranch("PID_umW", W.pdgId)
+                        self.realW = 0 
 
 
         pfCandsVec = ROOT.vector("TLorentzVector")()
@@ -236,6 +328,7 @@ class nsubjettinessProducer(Module):
                     
                 self.out.fillBranch("goodrecojet" + str(irecojet) + "_tau21", tau21)
                 self.out.fillBranch("goodrecojet" + str(irecojet) + "_N21",  recojet.n2b1)
+                self.out.fillBranch("genmatchedrecoAK8",  self.realW)
 
                 for tauN in range(self.maxTau):
                     self.out.fillBranch("goodrecojet" + str(irecojet) + "_tau_0p5_"+str(tauN),  nsub0p5[tauN]  )

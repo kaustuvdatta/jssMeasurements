@@ -108,8 +108,10 @@ class nsubjettinessProducer(Module):
                 self.out.branch("goodrecojet" + ijet + "_tau_0p5_"+str(tauN),  "F")
                 self.out.branch("goodrecojet" + ijet + "_tau_1_"+str(tauN),  "F")
                 self.out.branch("goodrecojet" + ijet + "_tau_2_"+str(tauN),  "F")
-	    self.out.branch("MET",  "F")
-            self.out.branch("leptonicW_pT",  "F")            
+	    self.out.branch("MET1",  "F")
+            self.out.branch("leptonicW_pT1",  "F")            
+	    self.out.branch("MET2",  "F")
+            self.out.branch("leptonicW_pT2",  "F")            
 	    self.out.branch("lepton_pT",  "F")
 
         pass
@@ -124,9 +126,9 @@ class nsubjettinessProducer(Module):
         #isMC = event.run == 1
 
         self.dummy+=1
-        #if (self.dummy > 10000): return False
+        if (self.dummy > 10000): return False
         if self.verbose: print ('Event : ', event.event)
-        #if self.dummy%5000==0: print ("Analyzing events...", self.dummy)
+        if self.dummy%1000==0: print ("Analyzing events...", self.dummy)
             
 
         ### Get W->jj candidate ###
@@ -165,10 +167,14 @@ class nsubjettinessProducer(Module):
             return False
 
         #if lepflag==1 and met.pt<self.minMuonMET: return False
-        MET = ROOT.TLorentzVector()
-        MET.SetPtEtaPhiE(met.pt, 0., met.phi, met.sumEt)
+        MET1 = ROOT.TLorentzVector()
+        MET1.SetPtEtaPhiE(met.pt, 0., met.phi, met.sumEt)
 
-        leptonicWCand = MET+recoLepton
+	MET2 = ROOT.TLorentzVector()
+        MET2.SetPtEtaPhiE(met.pt, 0., met.phi, 0)
+
+        leptonicWCand1 = MET1+recoLepton
+        leptonicWCand2 = MET2+recoLepton
 	
         ### applying basic selection to jets if any, remaining AK8 jets are thus hadronic  W Candidates
 
@@ -186,7 +192,9 @@ class nsubjettinessProducer(Module):
 
         ### applying basic selection to ak4-jets if any, if passed these are b-jet candidates
         recoAK4jets = [ x for x in bjets if x.p4().Perp() > self.minbJetPt and abs(x.p4().Eta()) < self.maxbJetEta and x.btagCSVV2 > self.minBDisc]
-	
+	#for x in recoAK4jets:
+	#    print x.btagCSVV2
+
 	if len(recoAK4jets)<1: return False #exit if no AK4-jets in event
         
 
@@ -217,16 +225,18 @@ class nsubjettinessProducer(Module):
                     nsub1 = self.nSub1.getTau( self.maxTau, constituents )
                     nsub2 = self.nSub2.getTau( self.maxTau, constituents )
                     
-            if (irecojet < 1 ): #to extract only the leading jet
+            if (irecojet < 2 ): #to extract only the leading and sub-leading jet
 
                 self.out.fillBranch("goodrecojet" + str(irecojet) + "_pt",  recojet.p4().Pt() )
                 self.out.fillBranch("goodrecojet" + str(irecojet) + "_eta",  recojet.p4().Eta() )
                 self.out.fillBranch("goodrecojet" + str(irecojet) + "_phi",  recojet.p4().Phi() )
                 self.out.fillBranch("goodrecojet" + str(irecojet) + "_mass",  recojet.p4().M() )
                 self.out.fillBranch("goodrecojet" + str(irecojet) + "_softdrop_mass", recojet.msoftdrop)
-                self.out.fillBranch("leptonicW_pT",leptonicWCand.Perp())                	
+                self.out.fillBranch("leptonicW_pT1",leptonicWCand1.Perp())                	
+                self.out.fillBranch("leptonicW_pT2",leptonicWCand2.Perp())                	
                 self.out.fillBranch("lepton_pT",recoLepton.Perp())
-                self.out.fillBranch("MET", met.pt)
+                self.out.fillBranch("MET1", MET1.Perp())
+                self.out.fillBranch("MET2", MET2.Perp())
                 
                 if recojet.tau1 > 0.: 
                     tau21 = recojet.tau2/recojet.tau1

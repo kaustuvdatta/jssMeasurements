@@ -21,7 +21,7 @@ class nsubjettinessProducer(Module):
         
     def beginJob(self, histFile, histDirName):
         Module.beginJob(self, histFile, histDirName)
-        # self.beta4_W_par = [ 0.49631107, -0.91138405, 0.11273356, -0.26872, 0.04777313, 0.06521296, 0.51138633, -0.03617261] # 4-body N-subjettiness product observable params obtained via linear regression method of arXiv:1902:07180 
+        self.beta4_W_par = [ 0.49631107, -0.91138405, 0.11273356, -0.26872, 0.04777313, 0.06521296, 0.51138633, -0.03617261] # 4-body N-subjettiness product observable params obtained via linear regression method of arXiv:1902:07180 
         ### Observable params correspond to optimization over boosted W samples from W'->WZ(Z->vv) with pT_min=200 GeV, loose mass cut of [70,115] 
 
 
@@ -126,7 +126,7 @@ class nsubjettinessProducer(Module):
         self.dummy+=1
         #if (self.dummy > 10000): return False
         if self.verbose: print ('Event : ', event.event)
-        if self.dummy%5000==0: print ("Analyzing events...", self.dummy)
+        #if self.dummy%5000==0: print ("Analyzing events...", self.dummy)
             
 
         ### Get W->jj candidate ###
@@ -145,7 +145,7 @@ class nsubjettinessProducer(Module):
         # applying basic selections to loose leptons, to decide on veto or not (only using muons for now)
 
         
-	recoLooseElectrons  = [x for x in electrons if x.pt>self.minLooseElectronPt and x.cutBased_HEEP and ((self.range1ElectronEta[0]<abs(x.p4().Eta())<self.range1ElectronEta[1]) or (self.range2ElectronEta[0]<abs(x.p4().Eta())<self.range2ElectronEta[1]))]
+        recoLooseElectrons  = [x for x in electrons if x.pt>self.minLooseElectronPt and x.cutBased_HEEP]
 
         recoLooseMuons = [ x for x in muons if x.pt > self.minLooseMuonPt and abs(x.p4().Eta()) < self.maxLooseMuonEta and x.pfRelIso03_all < 0.1]   
         recoLooseElectrons.sort(key=lambda x:x.pt, reverse=True)
@@ -212,7 +212,7 @@ class nsubjettinessProducer(Module):
 
             for x in pfCandsVec:
 
-                if abs(recojet.p4().DeltaR( x )) < 0.8:
+                if recojet.p4().DeltaR( x ) < 0.8:
                     constituents.push_back(x)
                     nsub0p5 = self.nSub0p5.getTau( self.maxTau, constituents )
                     nsub1 = self.nSub1.getTau( self.maxTau, constituents )
