@@ -144,7 +144,7 @@ class nsubjettinessProducer(Module):
         self.dummy+=1
         #if (self.dummy > 10000): return False
         if self.verbose: print ('Event : ', event.event)
-        if self.dummy%5000==0: print ("Analyzing events...", self.dummy)
+        if self.dummy%500==0: print ("Analyzing events...", self.dummy)
             
 	
         ### Get W->jj candidate ###
@@ -158,6 +158,41 @@ class nsubjettinessProducer(Module):
 
         #electronTrigger = event.HLT_Ele115_CaloIdVT_GsfTrkIdT
         
+	if isMC==True:
+	    #list real W's, match gen-level hadronically daughting W's to selected W candidate jets at reco-level
+            genParticles = Collection(event, "GenPart")
+	    genWmoms = []
+	    genWdaughts = []
+            
+            
+            Tmom = [x for x in genParticles if x.pt>10 and abs(x.pdgId)==6]
+            Tdaughts = [x for x in genParticles if x.pt>1 and (abs(x.pdgId)==5 or abs(x.pdgId)==24)]
+
+            Wdaughts = [x for x in genParticles if x.pt>1. and 0<abs(x.pdgId)<9]
+	    
+	    Wmom = [x for x in genParticles if x.pt>10. and abs(x.pdgId)==24]
+   
+	    #if self.dummy%500==0:
+	    # 	for x in Wdaughts:
+            #	    print "Wdaught:", x.pdgId, x.genPartIdxMother, x.statusFlags
+            #	for x in Wmom:
+            #	    print "Wmom:", x.pdgId, x.genPartIdxMother, x.statusFlags
+
+	    if len(Wdaughts)>0 and len(Wmom)>0 and len(Tdaughts)>0 and len(Tmom)>0 :
+                for x in Wdaughts:
+                    for y in Wmom:
+                        try:
+                            if y==Wmom[x.genPartIdxMother] and (y in Tdaughts):
+                                self.out.fillBranch("PID_W",y.pdgId)
+                                #print y, "W from top decaying to qq"
+                                #self.out.fillBranch("GPIdx_W",x.genPartIdxMother)
+                                genWmoms.append(y)
+                                genWdaughts.append(x)
+                                        
+                        except:
+                            continue
+
+
         ### Applying selections
         
         # applying basic selections to loose leptons, to decide on veto or not (only using muons for now)
@@ -174,7 +209,7 @@ class nsubjettinessProducer(Module):
         recoElectrons.sort(key=lambda x:x.pt, reverse=True)
         recoMuons.sort(key=lambda x:x.pt, reverse=True)
         
-	if not len(recoMuons) > 0 or not recoMuons[0].pt > minTightMuonPt or not abs(recoMuons[0].eta) < maxTightMuonEta: return False
+	if not len(recoMuons) > 0 or not recoMuons[0].pt > self.minTightMuonPt or not abs(recoMuons[0].eta) < self.maxTightMuonEta: return False
 	#if not recoMuons[0].highPtId >= 2 or not recoMuons[0].isPFcand or not recoMuons[0].pfIsoId >= 4: return False
 
         recoLepton=ROOT.TLorentzVector()
@@ -233,7 +268,7 @@ class nsubjettinessProducer(Module):
 	    return False
 	if abs(recoAK4.DeltaR(recoAK8))<0.8:
             return False
-
+	self.realW = 0
 	###Matching
         if isMC:
             for W in genWmoms:
