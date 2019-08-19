@@ -15,7 +15,7 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.crabhelper import inputF
 
 #from PhysicsTools.NanoAODTools.postprocessing.modules.common.puWeightProducer import puWeight_2016 #puAutoWeight_2016 #puWeight_2016     
 #from PhysicsTools.NanoAODTools.postprocessing.modules.btv.btagSFProducer import btagSF2016         
-from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetRecalib import jetRecalib2016BCDAK8Puppi, jetRecalib2016EFAK8Puppi, jetRecalib2016GHAK8Puppi
+#from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetRecalib import jetRecalib2016BCDAK8Puppi, jetRecalib2016EFAK8Puppi, jetRecalib2016GHAK8Puppi
 
 # our module
 from Analysis.jetObservables.nSubProducer import nsubjettinessProducer
@@ -85,7 +85,7 @@ print inputFiles()
 #jetRecalib2016BCDAK8Puppi(),
 #puWeight_2016(), btagSF2016()
 p1=PostProcessor( ".", inputFiles(), "", "keep_and_drop.txt",
-                    modules=[jetRecalib2016BCDAK8Puppi(), nsubjettinessProducer()], 
+                    modules=[nsubjettinessProducer()], 
                     provenance=True,
                     fwkJobReport=True,
                     #jsonInput=runsAndLumis(),
