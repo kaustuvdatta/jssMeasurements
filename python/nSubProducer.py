@@ -144,7 +144,7 @@ class nsubjettinessProducer(Module):
         self.dummy+=1
         #if (self.dummy > 10000): return False
         if self.verbose: print ('Event : ', event.event)
-        if self.dummy%500==0: print ("Analyzing events...", self.dummy)
+        if self.dummy%1000==0: print ("Analyzing events...", self.dummy)
             
 	
         ### Get W->jj candidate ###
