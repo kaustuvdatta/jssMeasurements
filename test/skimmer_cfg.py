@@ -7,8 +7,7 @@ process = cms.Process("Demo")
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1)  )
 
 process.source = cms.Source("PoolSource",
-        fileNames = cms.untracked.vstring([
-            '/store/mc/RunIISummer16MiniAODv2/WprimeToWZToWhadZinv_narrow_M-1000_13TeV-madgraph/MINIAODSIM/PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/00000/FE6534F4-7D02-E711-BC7C-02163E014328.root',
+        fileNames = cms.untracked.vstring(['/store/group/lpctlbsm/NanoAODJMAR_2019_V1/Production/CRAB/ST_t-channel_antitop_4f_inclusiveDecays_13TeV-powhegV2-madspin-pythia8_TuneCUETP8M1/STt-channelantitop4finclusiveDecays13TeV-powhegV2-madspin-pythia8TuneCUETP8M1/190321_164510/0000/nano102x_on_mini94x_2016_mc_NANO_99.root',
             ])
         )
 
@@ -19,7 +18,7 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 100
 
 ####### CMS way to save output root files
 process.TFileService = cms.Service("TFileService",
-        fileName = cms.string("skimOutputFile.root"),
+        fileName = cms.string("skimOutputFile_Wprime_M-1000_1200_1600_3500.root"),
         closeFileFast = cms.untracked.bool(True)
         )
 
@@ -31,10 +30,10 @@ process.GenParticlesNoNu = cms.EDFilter("CandPtrSelector",
         )
 
 ###### CLusteting genJets, and applying pt cut
-#process.ak8GenJets = ak4GenJets.clone(
-process.ak8GenJets = ak4PFJets.clone(
-        src = "packedPFCandidates",
-        #src = "GenParticlesNoNu",
+process.ak8GenJets = ak4GenJets.clone(
+#process.ak8GenJets = ak4PFJets.clone(
+        #src = "packedPFCandidates",
+        src = "GenParticlesNoNu",
         rParam = 0.8,
         jetAlgorithm = 'AntiKt',
         jetPtMin = 200,

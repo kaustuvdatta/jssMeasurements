@@ -11,7 +11,7 @@ def make_list(option, opt, value, parser):
 def createBash():
 
     BASH_SCRIPT = '''
-#this is not mean to be run locally
+#this is not meant to be run locally
 #
 echo Check if TTY
 if [ "`tty`" != "not a tty" ]; then
@@ -59,18 +59,21 @@ def submitJobs( job, inputFiles, unitJobs ):
     config.General.workArea = options.dir
     config.General.transferLogs = False
     config.General.transferOutputs = True
-
+    
     config.section_("JobType")
     config.JobType.pluginName = 'Analysis'
     config.JobType.psetName = 'PSet.py'
-
+    #config.JobType.maxMemoryMB = 5000
+    
     config.section_("Data")
-    config.Data.publication = True
-    config.Data.publishDBS = 'phys03'
-
+    #config.Data.publication = True
+    #config.Data.publishDBS = 'phys03'
+    config.Data.inputDBS = 'phys03'
+    config.Data.ignoreLocality = True
+   
     config.section_("Site")
     config.Site.storageSite = options.storageSite
-    #config.Site.whitelist = ['T2_US_Nebraska','T2_CH_CSCS','T3_US_UMD','T2_US_Caltech','T2_US_MIT']
+    config.Site.whitelist = ['T1_US_FNAL','T2_CH_CSCS','T3_US_FNALLPC']
     #config.Site.blacklist = ['T2_US_Florida','T3_TW_*','T2_BR_*','T2_GR_Ioannina','T2_BR_SPRACE','T2_RU_IHEP','T2_PL_Swierk','T2_KR_KNU','T3_TW_NTU_HEP']
 
 
@@ -92,7 +95,7 @@ def submitJobs( job, inputFiles, unitJobs ):
     config.Data.inputDataset = inputFiles
     config.Data.splitting = 'FileBased'
     config.Data.unitsPerJob = unitJobs
-    config.Data.outputPrimaryDataset = job
+    #config.Data.outputPrimaryDataset = job
 
     # since the input will have no metadata information, output can not be put in DBS
     config.JobType.outputFiles = [ 'jetObservables_nanoskim.root']
@@ -148,8 +151,23 @@ if __name__ == '__main__':
 
 
     dictSamples = {}
-    dictSamples['SingleMuon_Run2017'] = [ ['root://cmseos.fnal.gov//store/user/asparker/NanoAODJMARTools-skims//nanoskim-JetsandLepton-SingleMuon17B-trees.root', 'root://cmseos.fnal.gov//store/user/asparker/NanoAODJMARTools-skims//nanoskim-JetsandLepton-SingleMuon17C-trees.root', 'root://cmseos.fnal.gov//store/user/asparker/NanoAODJMARTools-skims//nanoskim-JetsandLepton-SingleMuon17D-trees.root', 'root://cmseos.fnal.gov//store/user/asparker/NanoAODJMARTools-skims//nanoskim-JetsandLepton-SingleMuon17E-trees.root', 'root://cmseos.fnal.gov//store/user/asparker/NanoAODJMARTools-skims//nanoskim-JetsandLepton-SingleMuon17F-trees.root' ], 1 ]
+    
+    
+    dictSamples['SingleMuon2016B'] = ['/SingleMuon/algomez-SingleMuon_Run2016B-17Jul2018_ver2-v1-c59ef3ac16263506c0c61b1b9e3fa54b/USER',1]
 
+    dictSamples['SingleMuon2016C'] = ['/SingleMuon/algomez-SingleMuon_Run2016C-17Jul2018-v1-c59ef3ac16263506c0c61b1b9e3fa54b/USER',1]
+
+    dictSamples['SingleMuon2016D'] = ['/SingleMuon/algomez-SingleMuon_Run2016D-17Jul2018-v1-c59ef3ac16263506c0c61b1b9e3fa54b/USER',1]
+
+    dictSamples['SingleMuon2016E'] = ['/SingleMuon/algomez-SingleMuon_Run2016E-17Jul2018-v1-c59ef3ac16263506c0c61b1b9e3fa54b/USER',1]
+    
+    dictSamples['SingleMuon2016F'] = ['/SingleMuon/algomez-SingleMuon_Run2016F-17Jul2018-v1-c59ef3ac16263506c0c61b1b9e3fa54b/USER',1]
+
+    dictSamples['SingleMuon2016G'] = ['/SingleMuon/algomez-SingleMuon_Run2016G-17Jul2018-v1-c59ef3ac16263506c0c61b1b9e3fa54b/USER',1]
+
+    dictSamples['SingleMuon2016H'] = ['/SingleMuon/kadatta-SingleMuon_Run2016H-17Jul2018-v1-5ffac30f2c7d804e43ff60dc5e74139f/USER',1]
+    
+    
     processingSamples = {}
     if 'all' in options.datasets:
         for sam in dictSamples: processingSamples[ sam ] = dictSamples[ sam ]
