@@ -143,7 +143,7 @@ class nsubjettinessProducer(Module):
 
         self.dummy+=1
         #if (self.dummy > 10000): return False
-        if self.verbose: print ('Event : ', event.event)
+        #if self.verbose: print ('Event : ', event.event)
         if self.dummy%1000==0: print ("Analyzing events...", self.dummy)
             
 	
@@ -243,15 +243,16 @@ class nsubjettinessProducer(Module):
 	#if leptonicWCand.Pt()<200: return False
         ### applying selection to fatjets, ak4jets, angular selections between lepton and ak4jet, lepton and fatjets, and ak4 and ak8 jets
 
-        recojets = [ x for x in jets if x.pt > self.minJetPt and abs(x.p4().Eta()) < self.maxJetEta and x.msoftdrop>self.minJetSDMass]
-        recojets.sort(key=lambda x:x.pt,reverse=True)
-	
+	recojets = [ x for x in jets if x.pt_nom > self.minJetPt and abs(x.p4().Eta()) < self.maxJetEta and x.msoftdrop_nom>self.minJetSDMass]
+        recojets.sort(key=lambda x:x.pt_nom,reverse=True)
+
 
         if len(recojets)<1: #exit if no AK8jets in event
             return False
-        
+
         recoAK8 = ROOT.TLorentzVector()
-        recoAK8.SetPtEtaPhiM(recojets[0].pt,recojets[0].eta,recojets[0].phi,recojets[0].mass)
+        #recoAK8.SetPtEtaPhiM(recojets[0].pt,recojets[0].eta,recojets[0].phi,recojets[0].mass)
+        recoAK8.SetPtEtaPhiM(recojets[0].pt_nom,recojets[0].eta,recojets[0].phi,recojets[0].mass_nom)
         
 	dR_AK8Lepton = recoAK8.DeltaR(recoLepton)
 	if abs(dR_AK8Lepton)<1. : return False #take care of lepton overlap
@@ -322,11 +323,11 @@ class nsubjettinessProducer(Module):
                     
             if (irecojet < 1 ): #to extract only the leading jet
 
-                self.out.fillBranch("goodrecojet" + str(irecojet) + "_pt",  recojet.p4().Pt() )
+                self.out.fillBranch("goodrecojet" + str(irecojet) + "_pt",  recojet.pt_nom )
                 self.out.fillBranch("goodrecojet" + str(irecojet) + "_eta",  recojet.p4().Eta() )
                 self.out.fillBranch("goodrecojet" + str(irecojet) + "_phi",  recojet.p4().Phi() )
                 self.out.fillBranch("goodrecojet" + str(irecojet) + "_mass",  recojet.p4().M() )
-                self.out.fillBranch("goodrecojet" + str(irecojet) + "_softdrop_mass", recojet.msoftdrop)
+                self.out.fillBranch("goodrecojet" + str(irecojet) + "_softdrop_mass", recojet.msoftdrop_nom)
                 self.out.fillBranch("leptonicW_pT",leptonicWCand.Pt())                	
                 self.out.fillBranch("lepton_pT",recoLepton.Pt())
                 self.out.fillBranch("MET", met.pt)
