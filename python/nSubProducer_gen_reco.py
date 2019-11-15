@@ -108,6 +108,7 @@ class nsubjettinessProducer(Module):
             self.out.branch("goodgenjet" + ijet + "_eta",  "F")
             self.out.branch("goodgenjet" + ijet + "_phi",  "F")
             self.out.branch("goodgenjet" + ijet + "_mass",  "F")
+            self.out.branch("goodgenjet" + ijet + "_tau21", "F")
 
             self.out.branch("dr_LepJet",  "F")
             self.out.branch("dphi_LepJet",  "F")
@@ -126,12 +127,15 @@ class nsubjettinessProducer(Module):
                 self.out.branch("goodgenjet" + ijet + "_tau_2_"+str(tauN),  "F")
 
             self.out.branch("dR_gen_reco_AK8", "F")
+            self.out.branch("dR_genW_genAK8", "F")
             self.out.branch("MET",  "F")
             self.out.branch("leptonicW_pT",  "F")            
             self.out.branch("lepton_pT",  "F")
             self.out.branch("passedMETfilters",  "I")
             self.out.branch("genmatchedrecoAK8",  "I")
-            #self.out.branch("matched_genAK8_recoAK8",  "I")
+            self.out.branch("genmatchedgenAK8",  "I")
+            self.out.branch("genEventNo_taus_are_0",  "I")
+            self.out.branch("recoEventNo_taus_are_0",  "I")
             self.out.branch("PID_mW",  "I")
             self.out.branch("PID_umW",  "I")
             self.out.branch("PID_W",  "I")
@@ -155,8 +159,8 @@ class nsubjettinessProducer(Module):
 
         self.dummy+=1
         #if (self.dummy > 10000): return False
-        #if self.verbose: print ('Event : ', event.event)
-        #if self.dummy%1000==0: print ("Analyzing events...", self.dummy)
+        if self.verbose: print ('Event : ', event.event)
+        if self.dummy%1000==0: print ("Analyzing events...", self.dummy)
             
     
         ### Get W->jj candidate ###
@@ -280,7 +284,7 @@ class nsubjettinessProducer(Module):
         
 
         genjets = [x for x in gen_ak8]
-        #genjets.sort(key=lambda x:x.pt,reverse=True)
+        genjets.sort(key=lambda x:x.pt,reverse=True)
 
         dRmin=[0.2,0]
 
@@ -291,14 +295,10 @@ class nsubjettinessProducer(Module):
                 dRmin[0] = abs(genjet_4v.DeltaR(recoAK8))
                 dRmin[1] = i
 
-	#if len(genjets)>=1:
-        #    if dRmin[1]!=0:
-	#	print dRmin
-	#	good] = genjets[dRmin[1]]
-		
-	#	dR_RecoAK8_GenAK8  = dRmin[0]
 	
 	goodgenjet = genjets[dRmin[1]]	
+	genlevelAK8 = ROOT.TLorentzVector()
+        genlevelAK8.SetPtEtaPhiM(goodgenjet.pt, goodgenjet.eta, goodgenjet.phi, goodgenjet.mass)	
 
         self.realW = 0
         ###Matching
@@ -328,10 +328,29 @@ class nsubjettinessProducer(Module):
                         self.out.fillBranch("PID_mW", W.pdgId)
                         self.realW = 1
                     else: 
-                        #self.out.fillBranch("dR_AK8qi_umW" abs(recoAK8.DeltaR(gendec_4v)))                     
+                        #self.out.fillBranch("dR_AK8qi_umW" abs(recoAK8.DeltaR(gendec_4v)))                      
                         self.out.fillBranch("PID_umW", W.pdgId)
                         self.realW = 0 
+                    
+                    ndec = 0
+                    for Wdec in genWdaughts:
+                        #self.out.fillBranch("dR_AK8motherW_W", abs(recoAK8.DeltaR(genW_4v)))
+                        gendec_4v = ROOT.TLorentzVector()
+                        gendec_4v.SetPtEtaPhiM(Wdec.pt,Wdec.eta,Wdec.phi,Wdec.mass)
+                    
+                        if abs(genlevelAK8.DeltaR(gendec_4v))<0.6:
+                            ndec +=1
 
+                    if ndec>1: 
+                        #if abs(genlevelAK8.DeltaR(genW_4v))<0.3:
+                        store = 1
+                        self.out.fillBranch("genmatchedgenAK8", 1)
+                        self.out.fillBranch("dR_genW_genAK8", abs(genlevelAK8.DeltaR(genW_4v)))
+
+                    else:
+                        self.out.fillBranch("genmatchedgenAK8", 0)
+
+                        
 
         pfCandsVec = ROOT.vector("TLorentzVector")()
 
@@ -379,6 +398,8 @@ class nsubjettinessProducer(Module):
                 self.out.fillBranch("passedMETfilters",passedMETFilters)
 
                 for tauN in range(self.maxTau):
+		    if nsub0p5[tauN]==0. or nsub1[tauN]==0. or nsub2[tauN]==0.:
+  			self.out.fillBranch("recoEventNo_taus_are_0", event.event) 
                     self.out.fillBranch("goodrecojet" + str(irecojet) + "_tau_0p5_"+str(tauN),  nsub0p5[tauN]  )
                     self.out.fillBranch("goodrecojet" + str(irecojet) + "_tau_1_"+str(tauN),  nsub1[tauN]  )
                     self.out.fillBranch("goodrecojet" + str(irecojet) + "_tau_2_"+str(tauN),  nsub2[tauN]  )
@@ -407,11 +428,29 @@ class nsubjettinessProducer(Module):
         self.out.fillBranch("dR_gen_reco_AK8",  dRmin[0])   
         #self.out.fillBranch("matched_genAK8_recoAK8",  self.match_gen_reco)   
 
-
+        tau11 = 0
+        tau21 = 0 
         for tauN in range(self.maxTau):
+            if tauN==0:
+                tau11 = nsub1[tauN]
+            if tauN==1:
+                tau21 = nsub1[tauN]
+	    if nsub0p5[tauN]==0. or nsub1[tauN]==0. or nsub2[tauN]==0.:
+		self.out.fillBranch("genEventNo_taus_are_0", event.event) 
+                print nsub0p5
+                print nsub1
+                print nsub2
+
             self.out.fillBranch("goodgenjet0_tau_0p5_"+str(tauN),  nsub0p5[tauN]  )
             self.out.fillBranch("goodgenjet0_tau_1_"+str(tauN),  nsub1[tauN]  )
             self.out.fillBranch("goodgenjet0_tau_2_"+str(tauN),  nsub2[tauN]  )
+        
+        if tau11!=0.:
+            self.out.fillBranch("goodgenjet0_tau21", tau21/tau11 )
+        else:
+            self.out.fillBranch("goodgenjet0_tau21", -1. )
+        
+            
 
         return True
 
