@@ -47,7 +47,7 @@ class nsubjettinessProducer(Module):
         self.genCandsBranchName = "GenPartAK8"
         self.genJetBranchName = "GenJetAK8"
         self.AK4GenJetBranchName = "GenJet"
-        self.genPartBranchName = "GenPart"
+        #self.genPartBranchName = "GenPart"
         self.genMETBranchName = "GenMET"
         self.subGenJetAK8BranchName = "SubGenJetAK8"
 
@@ -146,7 +146,7 @@ class nsubjettinessProducer(Module):
         #genCands = Collection(event, self.genCandsBranchName )
 
         if isMC==True:
-            genParticles = Collection(event, "GenPart")
+            genParticles = Collection(event, self.genCandsBranchName)
 
 
         recojets = [ x for x in jets if x.p4().Perp() > self.minJetPt and abs(x.p4().Eta()) < self.maxJetEta and self.minJetSDMass<x.msoftdrop<self.maxJetSDMass]# and (x.p4().DeltaR(recoLepton)>=1.)]
@@ -193,9 +193,9 @@ class nsubjettinessProducer(Module):
 
                 if recojet.p4().DeltaR( x ) < 0.8:
                     constituents.push_back(x)
-                    nsub0p5 = self.nSub0p5.getTau( self.maxTau, constituents )
-                    nsub1 = self.nSub1.getTau( self.maxTau, constituents )
-                    nsub2 = self.nSub2.getTau( self.maxTau, constituents )
+                nsub0p5 = self.nSub0p5.getTau( self.maxTau, constituents )
+                nsub1 = self.nSub1.getTau( self.maxTau, constituents )
+                nsub2 = self.nSub2.getTau( self.maxTau, constituents )
                     
             if (irecojet < 1 ): #to extract only the leading and sub-leading jets 
                 #print "irecojet", irecojet
@@ -237,9 +237,9 @@ class nsubjettinessProducer(Module):
 
             if abs(goodgenjet.p4().DeltaR( x )) < 0.8:
                 constituents.push_back(x)
-                nsub0p5 = self.nSub0p5.getTau( self.maxTau, constituents )
-                nsub1 = self.nSub1.getTau( self.maxTau, constituents )
-                nsub2 = self.nSub2.getTau( self.maxTau, constituents )
+            nsub0p5 = self.nSub0p5.getTau( self.maxTau, constituents )
+            nsub1 = self.nSub1.getTau( self.maxTau, constituents )
+            nsub2 = self.nSub2.getTau( self.maxTau, constituents )
                     
 	self.out.fillBranch("goodgenjet0_pt",  goodgenjet.pt)
         self.out.fillBranch("goodgenjet0_eta",  goodgenjet.p4().Eta() )
