@@ -81,7 +81,6 @@ class nsubjettinessProducer(Module):
         ### Medium https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation80XReReco
         ### from https://github.com/thaarres/WTopScalefactorProducer/blob/master/Skimmer/python/TTSkimmer.py
 
-
         print ("Load C++ Recluster worker module")
         ROOT.gSystem.Load("libPhysicsToolsNanoAODJMARTools.so")
 
