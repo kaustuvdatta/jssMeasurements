@@ -50,7 +50,7 @@ class nsubjettinessProducer(Module):
         self.AK4GenJetBranchName = "GenJet"
         #self.genPartBranchName = "GenPart"
         self.genMETBranchName = "GenMET"
-        self.subGenJetAK8BranchName = "SubGenJetAK8"
+        #self.subGenJetAK8BranchName = "SubGenJetAK8"
 
         
         ### Kinematics Cuts Jets ###
