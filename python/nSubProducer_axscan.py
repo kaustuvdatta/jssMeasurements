@@ -345,13 +345,13 @@ class nsubjettinessProducer(Module):
                 return False
         
 
-        genjets = [x for x in gen_ak8 if x.pt > 0.9*self.minJetPt and abs(x.p4().Eta()) < self.maxJetEta and x.mass>self.minJetSDMass]
+        genjets = [x for x in gen_ak8 if x.pt > 0.8*self.minJetPt and  abs(x.p4().Eta()) < self.maxJetEta]
         genjets.sort(key=lambda x:x.pt,reverse=True)
         
 
         if len(genjets)<1: 
             print "#exit if no gen-jets in event", event.event
-            return False #exit if no AK4-jets in event
+            return False #exit if no gen-jets in event
 
 
         dRmin=[0.2,0]
@@ -417,8 +417,7 @@ class nsubjettinessProducer(Module):
                     else:
                         #self.out.fillBranch("genmatchedgenAK8", 0)
                         self.isgenW=0
-                else:
-                    return False
+               
                         
         #Store the mMDT groomed (leading) reco AK8PUPPI jet
         pfCandsVec = ROOT.vector("TLorentzVector")()
