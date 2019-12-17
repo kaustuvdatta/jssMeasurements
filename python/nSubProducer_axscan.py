@@ -34,7 +34,7 @@ class nsubjettinessProducer(Module):
         self.nSub0p5_OP_kT = ROOT.NsubjettinessWrapper( 0.5, 0.8, 0, 6 ) #beta, cone size, measureDef 0=Normalize, axesDef 6=onepass_KT_axes
         self.nSub1_OP_kT = ROOT.NsubjettinessWrapper( 1, 0.8, 0, 6 )
         self.nSub2_OP_kT = ROOT.NsubjettinessWrapper( 2, 0.8, 0, 6 )
-        self.sd = ROOT.SoftDropWrapper(self.beta,self.zcut, self.R, self.ptmin)
+        self.sd = ROOT.SoftDropWrapper(self.beta, self.zcut, self.R, self.ptmin)
 
         self.dummy = 0;
 
@@ -592,13 +592,13 @@ class nsubjettinessProducer(Module):
             self.out.fillBranch("goodgenjet0_tau_1_"+str(tauN),  nsub1[tauN]  )
             self.out.fillBranch("goodgenjet0_tau_2_"+str(tauN),  nsub2[tauN]  )
         
-            self.out.fillBranch("goodrecojet0_tau_0p5_"+str(tauN) + "_WTA_kT",  nsub0p5_WTA_kT[tauN]  )
-            self.out.fillBranch("goodrecojet0_tau_1_"+str(tauN) + "_WTA_kT",  nsub1_WTA_kT[tauN]  )
-            self.out.fillBranch("goodrecojet0_tau_2_"+str(tauN) + "_WTA_kT",  nsub2_WTA_kT[tauN]  )
+            self.out.fillBranch("goodgenjet0_tau_0p5_"+str(tauN) + "_WTA_kT",  nsub0p5_WTA_kT[tauN]  )
+            self.out.fillBranch("goodgenjet0_tau_1_"+str(tauN) + "_WTA_kT",  nsub1_WTA_kT[tauN]  )
+            self.out.fillBranch("goodgenjet0_tau_2_"+str(tauN) + "_WTA_kT",  nsub2_WTA_kT[tauN]  )
 
-            self.out.fillBranch("goodrecojet0_tau_0p5_"+str(tauN) + "_OP_kT",  nsub0p5_OP_kT[tauN]  )
-            self.out.fillBranch("goodrecojet0_tau_1_"+str(tauN) + "_OP_kT",  nsub1_OP_kT[tauN]  )
-            self.out.fillBranch("goodrecojet0_tau_2_"+str(tauN) + "_OP_kT",  nsub2_OP_kT[tauN]  )
+            self.out.fillBranch("goodgenjet0_tau_0p5_"+str(tauN) + "_OP_kT",  nsub0p5_OP_kT[tauN]  )
+            self.out.fillBranch("goodgenjet0_tau_1_"+str(tauN) + "_OP_kT",  nsub1_OP_kT[tauN]  )
+            self.out.fillBranch("goodgenjet0_tau_2_"+str(tauN) + "_OP_kT",  nsub2_OP_kT[tauN]  )
         
         
         if tau11!=0.:
