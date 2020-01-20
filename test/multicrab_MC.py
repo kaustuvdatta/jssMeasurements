@@ -153,107 +153,12 @@ if __name__ == '__main__':
     dictSamples = {}
     
 
-    #dictSamples[ 'QCD_0' ] = [ '/QCD_Pt-15to7000_TuneCUETP8M1_FlatP6_13TeV_pythia8/kadatta-QCDPt-15to7000TuneCUETP8M1FlatP613TeVpythia8RunIISummer16MiniAODv3-PUMoriond1794X-3de7f16b11abe7d2f2c8fb8b12121ea5/USER', 1 ]
-
-    
-    #dictSamples[ 'Wprime_0p3_1' ] = [ '/WprimeToWZToWhadZlep_width0p3_M-800_TuneCUETP8M1_13TeV-madgraph-pythia8/kadatta-WprimeToWZToWhadZlepwidth0p3M-800TuneCUETP8M113TeV-madgraph-pythia8-3de7f16b11abe7d2f2c8fb8b12121ea5/USER', 1 ]
-
-    #dictSamples[ 'Wprime_0p3_2' ] = [ '/WprimeToWZToWhadZlep_width0p3_M-1200_TuneCUETP8M1_13TeV-madgraph-pythia8/kadatta-WprimeToWZToWhadZlepwidth0p3M-1200TuneCUETP8M113TeV-madgraph-pythia8-3de7f16b11abe7d2f2c8fb8b12121ea5/USER', 1 ]
-
-    #dictSamples[ 'Wprime_0p3_3' ] = [ '/WprimeToWZToWhadZlep_width0p3_M-2000_TuneCUETP8M1_13TeV-madgraph-pythia8/kadatta-WprimeToWZToWhadZlepwidth0p3M-2000TuneCUETP8M113TeV-madgraph-pythia8-3de7f16b11abe7d2f2c8fb8b12121ea5/USER', 1 ]
-
-    #dictSamples[ 'Wprime_0p3_4' ] = [ '/WprimeToWZToWhadZlep_width0p3_M-3000_TuneCUETP8M1_13TeV-madgraph-pythia8/kadatta-WprimeToWZToWhadZlepwidth0p3M-3000TuneCUETP8M113TeV-madgraph-pythia8-3de7f16b11abe7d2f2c8fb8b12121ea5/USER', 1 ]
-
-    #dictSamples[ 'Wprime_0p3_5' ] = [ '/WprimeToWZToWhadZlep_width0p3_M-4000_TuneCUETP8M1_13TeV-madgraph-pythia8/kadatta-WprimeToWZToWhadZlepwidth0p3M-4000TuneCUETP8M113TeV-madgraph-pythia8-3de7f16b11abe7d2f2c8fb8b12121ea5/USER', 1 ]
-
-    #dictSamples[ 'Wprime_0p2_1' ] = [ '/WprimeToWZToWhadZlep_width0p2_M-800_TuneCUETP8M1_13TeV-madgraph-pythia8/kadatta-WprimeToWZToWhadZlepwidth0p2M-800TuneCUETP8M113TeV-madgraph-pythia8-3de7f16b11abe7d2f2c8fb8b12121ea5/USER', 1 ]
-
-    #dictSamples[ 'Wprime_0p2_2' ] = [ '/WprimeToWZToWhadZlep_width0p2_M-1200_TuneCUETP8M1_13TeV-madgraph-pythia8/kadatta-WprimeToWZToWhadZlepwidth0p2M-1200TuneCUETP8M113TeV-madgraph-pythia8-3de7f16b11abe7d2f2c8fb8b12121ea5/USER', 1 ]
-
-    #dictSamples[ 'Wprime_0p2_3' ] = [ '/WprimeToWZToWhadZlep_width0p2_M-2000_TuneCUETP8M1_13TeV-madgraph-pythia8/kadatta-WprimeToWZToWhadZlepwidth0p2M-2000TuneCUETP8M113TeV-madgraph-pythia8-3de7f16b11abe7d2f2c8fb8b12121ea5/USER', 1 ]
-
-    #dictSamples[ 'Wprime_0p2_4' ] = [ '/WprimeToWZToWhadZlep_width0p2_M-3000_TuneCUETP8M1_13TeV-madgraph-pythia8/kadatta-WprimeToWZToWhadZlepwidth0p2M-3000TuneCUETP8M113TeV-madgraph-pythia8-3de7f16b11abe7d2f2c8fb8b12121ea5/USER', 1 ]
-
-    #dictSamples[ 'Wprime_0p2_5' ] = [ '/WprimeToWZToWhadZlep_width0p2_M-4000_TuneCUETP8M1_13TeV-madgraph-pythia8/kadatta-WprimeToWZToWhadZlepwidth0p2M-4000TuneCUETP8M113TeV-madgraph-pythia8-3de7f16b11abe7d2f2c8fb8b12121ea5/USER', 1 ]
-
-    #dictSamples[ 'Wprime_0p1_1' ] = [ '/WprimeToWZToWhadZlep_width0p1_M-800_TuneCUETP8M1_13TeV-madgraph-pythia8/kadatta-WprimeToWZToWhadZlepwidth0p1M-800TuneCUETP8M113TeV-madgraph-pythia8-3de7f16b11abe7d2f2c8fb8b12121ea5/USER', 1 ]
-
-    #dictSamples[ 'Wprime_0p1_2' ] = [ '/WprimeToWZToWhadZlep_width0p1_M-1200_TuneCUETP8M1_13TeV-madgraph-pythia8/kadatta-WprimeToWZToWhadZlepwidth0p1M-1200TuneCUETP8M113TeV-madgraph-pythia8-3de7f16b11abe7d2f2c8fb8b12121ea5/USER', 1 ]
-
-    #dictSamples[ 'Wprime_0p1_3' ] = [ '/WprimeToWZToWhadZlep_width0p1_M-2000_TuneCUETP8M1_13TeV-madgraph-pythia8/kadatta-WprimeToWZToWhadZlepwidth0p1M-2000TuneCUETP8M113TeV-madgraph-pythia8-3de7f16b11abe7d2f2c8fb8b12121ea5/USER', 1 ]
-
-    #dictSamples[ 'Wprime_0p1_4' ] = [ '/WprimeToWZToWhadZlep_width0p1_M-3000_TuneCUETP8M1_13TeV-madgraph-pythia8/kadatta-WprimeToWZToWhadZlepwidth0p1M-3000TuneCUETP8M113TeV-madgraph-pythia8-3de7f16b11abe7d2f2c8fb8b12121ea5/USER', 1 ]
-
-    #dictSamples[ 'Wprime_0p1_5' ] = [ '/WprimeToWZToWhadZlep_width0p1_M-4000_TuneCUETP8M1_13TeV-madgraph-pythia8/kadatta-WprimeToWZToWhadZlepwidth0p1M-4000TuneCUETP8M113TeV-madgraph-pythia8-3de7f16b11abe7d2f2c8fb8b12121ea5/USER', 1 ]
-    
-
-    #dictSamples[ 'Zprime_0p3_1' ] = [ '/ZprimeToWWToWlepWhad_width0p3_M-800_TuneCUETP8M1_13TeV-madgraph-pythia8/kadatta-ZprimeToWWToWlepWhadwidth0p3M-800TuneCUETP8M113TeV-madgraph-pythia8-3de7f16b11abe7d2f2c8fb8b12121ea5/USER', 1 ]
-
-    #dictSamples[ 'Zprime_0p3_2' ] = [ '/ZprimeToWWToWlepWhad_width0p3_M-1200_TuneCUETP8M1_13TeV-madgraph-pythia8/kadatta-ZprimeToWWToWlepWhadwidth0p3M-1200TuneCUETP8M113TeV-madgraph-pythia8-3de7f16b11abe7d2f2c8fb8b12121ea5/USER', 1 ]
-
-    #dictSamples[ 'Zprime_0p3_3' ] = [ '/ZprimeToWWToWlepWhad_width0p3_M-2000_TuneCUETP8M1_13TeV-madgraph-pythia8/kadatta-ZprimeToWWToWlepWhadwidth0p3M-2000TuneCUETP8M113TeV-madgraph-pythia8-3de7f16b11abe7d2f2c8fb8b12121ea5/USER', 1 ]
-
-    #dictSamples[ 'Zprime_0p3_4' ] = [ '/ZprimeToWWToWlepWhad_width0p3_M-3000_TuneCUETP8M1_13TeV-madgraph-pythia8/kadatta-ZprimeToWWToWlepWhadwidth0p3M-3000TuneCUETP8M113TeV-madgraph-pythia8-3de7f16b11abe7d2f2c8fb8b12121ea5/USER', 1 ]
-
-    #dictSamples[ 'Zprime_0p3_5' ] = [ '/ZprimeToWWToWlepWhad_width0p3_M-4000_TuneCUETP8M1_13TeV-madgraph-pythia8/kadatta-ZprimeToWWToWlepWhadwidth0p3M-4000TuneCUETP8M113TeV-madgraph-pythia8-3de7f16b11abe7d2f2c8fb8b12121ea5/USER', 1 ]
-    
-    #dictSamples[ 'Zprime_0p2_1' ] = [ '/ZprimeToWWToWlepWhad_width0p2_M-800_TuneCUETP8M1_13TeV-madgraph-pythia8/kadatta-ZprimeToWWToWlepWhadwidth0p2M-800TuneCUETP8M113TeV-madgraph-pythia8-3de7f16b11abe7d2f2c8fb8b12121ea5/USER', 1 ]
-
-    #dictSamples[ 'Zprime_0p2_2' ] = [ '/ZprimeToWWToWlepWhad_width0p2_M-1200_TuneCUETP8M1_13TeV-madgraph-pythia8/kadatta-ZprimeToWWToWlepWhadwidth0p2M-1200TuneCUETP8M113TeV-madgraph-pythia8-3de7f16b11abe7d2f2c8fb8b12121ea5/USER', 1 ]
-
-    #dictSamples[ 'Zprime_0p2_3' ] = [ '/ZprimeToWWToWlepWhad_width0p2_M-2000_TuneCUETP8M1_13TeV-madgraph-pythia8/kadatta-ZprimeToWWToWlepWhadwidth0p2M-2000TuneCUETP8M113TeV-madgraph-pythia8-3de7f16b11abe7d2f2c8fb8b12121ea5/USER', 1 ]
-
-    #dictSamples[ 'Zprime_0p2_4' ] = [ '/ZprimeToWWToWlepWhad_width0p2_M-3000_TuneCUETP8M1_13TeV-madgraph-pythia8/kadatta-ZprimeToWWToWlepWhadwidth0p2M-3000TuneCUETP8M113TeV-madgraph-pythia8-3de7f16b11abe7d2f2c8fb8b12121ea5/USER', 1 ]
-
-    #dictSamples[ 'Zprime_0p2_5' ] = [ '/ZprimeToWWToWlepWhad_width0p2_M-4000_TuneCUETP8M1_13TeV-madgraph-pythia8/kadatta-ZprimeToWWToWlepWhadwidth0p2M-4000TuneCUETP8M113TeV-madgraph-pythia8-3de7f16b11abe7d2f2c8fb8b12121ea5/USER', 1 ]
-    
-    #dictSamples[ 'Zprime_0p1_1' ] = [ '/ZprimeToWWToWlepWhad_width0p1_M-800_TuneCUETP8M1_13TeV-madgraph-pythia8/kadatta-ZprimeToWWToWlepWhadwidth0p1M-800TuneCUETP8M113TeV-madgraph-pythia8-3de7f16b11abe7d2f2c8fb8b12121ea5/USER', 1 ]
-
-    #dictSamples[ 'Zprime_0p1_2' ] = [ '/ZprimeToWWToWlepWhad_width0p1_M-1200_TuneCUETP8M1_13TeV-madgraph-pythia8/kadatta-ZprimeToWWToWlepWhadwidth0p1M-1200TuneCUETP8M113TeV-madgraph-pythia8-3de7f16b11abe7d2f2c8fb8b12121ea5/USER', 1 ]
-
-    #dictSamples[ 'Zprime_0p1_3' ] = [ '/ZprimeToWWToWlepWhad_width0p1_M-2000_TuneCUETP8M1_13TeV-madgraph-pythia8/kadatta-ZprimeToWWToWlepWhadwidth0p1M-2000TuneCUETP8M113TeV-madgraph-pythia8-3de7f16b11abe7d2f2c8fb8b12121ea5/USER', 1 ]
-
-    #dictSamples[ 'Zprime_0p1_4' ] = [ '/ZprimeToWWToWlepWhad_width0p1_M-3000_TuneCUETP8M1_13TeV-madgraph-pythia8/kadatta-ZprimeToWWToWlepWhadwidth0p1M-3000TuneCUETP8M113TeV-madgraph-pythia8-3de7f16b11abe7d2f2c8fb8b12121ea5/USER', 1 ]
-
-    #dictSamples[ 'Zprime_0p1_5' ] = [ '/ZprimeToWWToWlepWhad_width0p1_M-4000_TuneCUETP8M1_13TeV-madgraph-pythia8/kadatta-ZprimeToWWToWlepWhadwidth0p1M-4000TuneCUETP8M113TeV-madgraph-pythia8-3de7f16b11abe7d2f2c8fb8b12121ea5/USER', 1 ]
-    
-        
     dictSamples['TTbar_1'] = [ '/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8/algomez-TTTuneCUETP8M2T413TeV-powheg-pythia8RunIISummer16MiniAODv3-PUMoriond1794XmcRun2-dafc15ff64439ee3efd0c8e48ce3e57e/USER', 1 ]
 
     dictSamples['TTbar_2'] = ['/TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/algomez-TTJetsTuneCUETP8M113TeV-madgraphMLM-pythia8RunIISummer16MiniAODv3-PUMoriond1794XmcRun2-dafc15ff64439ee3efd0c8e48ce3e57e/USER', 1]
 
+    dictSamples[ 'QCD_0' ] = [ '/QCD_Pt-15to7000_TuneCUETP8M1_FlatP6_13TeV_pythia8/kadatta-QCDPt-15to7000TuneCUETP8M1FlatP613TeVpythia8RunIISummer16MiniAODv3-PUMoriond1794X-3de7f16b11abe7d2f2c8fb8b12121ea5/USER', 1 ]
     
-    '''
-    dictSamples['ZtoQQ_1'] = ['/ZJetsToQQ_HT400to600_qc19_4j_TuneCP5_13TeV-madgraphMLM-pythia8/algomez-ZJetsToQQHT400to600qc194jTuneCP513TeV-madgraphMLM-pythia8RunIIFall17MiniAODv2-PU2017-2632477341b0033d0ee33ee9e5481e57/USER',1]
-
-    dictSamples['ZtoQQ_2'] = ['/ZJetsToQQ_HT600to800_qc19_4j_TuneCP5_13TeV-madgraphMLM-pythia8/algomez-ZJetsToQQHT600to800qc194jTuneCP513TeV-madgraphMLM-pythia8RunIIFall17MiniAODv2-PU2017-2632477341b0033d0ee33ee9e5481e57/USER',1]
-
-    dictSamples['ZtoQQ_3'] = ['/ZJetsToQQ_HT-800toInf_qc19_4j_TuneCP5_13TeV-madgraphMLM-pythia8/algomez-ZJetsToQQHT-800toInfqc194jTuneCP513TeV-madgraphMLM-pythia8RunIIFall17MiniAODv2-PU2017-2632477341b0033d0ee33ee9e5481e57/USER',1]
-
-    dictSamples['WtoQQ_1'] = ['/WJetsToQQ_HT400to600_qc19_3j_TuneCP5_13TeV-madgraphMLM-pythia8/algomez-WJetsToQQHT400to600qc193jTuneCP513TeV-madgraphMLM-pythia8RunIIFall17MiniAODv2-PU2017-2632477341b0033d0ee33ee9e5481e57/USER',1]
-
-    dictSamples['WtoQQ_2'] = ['/WJetsToQQ_HT600to800_qc19_3j_TuneCP5_13TeV-madgraphMLM-pythia8/algomez-WJetsToQQHT600to800qc193jTuneCP513TeV-madgraphMLM-pythia8RunIIFall17MiniAODv2-PU2017-2632477341b0033d0ee33ee9e5481e57/USER',1]
-
-    dictSamples['WtoQQ_3'] = ['/WJetsToQQ_HT-800toInf_qc19_3j_TuneCP5_13TeV-madgraphMLM-pythia8/algomez-WJetsToQQHT-800toInfqc193jTuneCP513TeV-madgraphMLM-pythia8RunIIFall17MiniAODv2-PU2017-2632477341b0033d0ee33ee9e5481e57/USER',1]
-
-    dictSamples['VV_1'] = ['/WW_TuneCUETP8M1_13TeV-pythia8/kadatta-WWTuneCUETP8M113TeV-pythia8RunIISummer16MiniAODv3-PUMoriond1794XmcRun2asymptoticv3_ext1-v2-3de7f16b11abe7d2f2c8fb8b12121ea5/USER',1]
-
-    dictSamples['VV_2'] = ['/WZ_TuneCUETP8M1_13TeV-pythia8/kadatta-WZTuneCUETP8M113TeV-pythia8RunIISummer16MiniAODv3-PUMoriond1794XmcRun2asymptoticv3_ext1-v2-3de7f16b11abe7d2f2c8fb8b12121ea5/USER',1]
-
-    dictSamples['VV_3'] = ['/ZZ_TuneCUETP8M1_13TeV-pythia8/kadatta-ZZTuneCUETP8M113TeV-pythia8RunIISummer16MiniAODv3-PUMoriond1794XmcRun2asymptoticv3_ext1-v2-3de7f16b11abe7d2f2c8fb8b12121ea5/USER',1]
-
-
-    dictSamples['QCD_1'] = [ '/QCD_Pt_170to300_TuneCP5_13TeV_pythia8/algomez-QCDPt170to300TuneCP513TeVpythia8RunIIFall17MiniAODv2-PU201712Apr201894Xmc2017-2632477341b0033d0ee33ee9e5481e57/USER',1]
-    dictSamples['QCD_2'] = [ '/QCD_Pt_300to470_TuneCP5_13TeV_pythia8/algomez-QCDPt300to470TuneCP513TeVpythia8RunIIFall17MiniAODv2-PU201712Apr201894Xmc2017-2632477341b0033d0ee33ee9e5481e57/USER',1]
-    dictSamples['QCD_3'] = [ '/QCD_Pt_470to600_TuneCP5_13TeV_pythia8/algomez-QCDPt470to600TuneCP513TeVpythia8RunIIFall17MiniAODv2-PU201712Apr201894Xmc2017-2632477341b0033d0ee33ee9e5481e57/USER',1]
-    dictSamples['QCD_4'] = [ '/QCD_Pt_600to800_TuneCP5_13TeV_pythia8/algomez-QCDPt600to800TuneCP513TeVpythia8RunIIFall17MiniAODv2-PU201712Apr201894Xmc2017-2632477341b0033d0ee33ee9e5481e57/USER',1]
-    dictSamples['QCD_5'] = [ '/QCD_Pt_800to1000_TuneCP5_13TeV_pythia8/algomez-QCDPt800to1000TuneCP513TeVpythia8RunIIFall17MiniAODv2-PU201712Apr201894Xmc2017-2632477341b0033d0ee33ee9e5481e57/USER',1]
-    dictSamples['QCD_6'] = [ '/QCD_Pt_1000to1400_TuneCP5_13TeV_pythia8/algomez-QCDPt1000to1400TuneCP513TeVpythia8RunIIFall17MiniAODv2-PU201712Apr201894Xmc2017-2632477341b0033d0ee33ee9e5481e57/USER',1]
-    dictSamples['QCD_7'] = [ '/QCD_Pt_1400to1800_TuneCP5_13TeV_pythia8/algomez-QCDPt1400to1800TuneCP513TeVpythia8RunIIFall17MiniAODv2-PU201712Apr201894Xmc2017-2632477341b0033d0ee33ee9e5481e57/USER',1]
-    dictSamples['QCD_8'] = ['/QCD_Pt_1800to2400_TuneCP5_13TeV_pythia8/algomez-QCDPt1800to2400TuneCP513TeVpythia8RunIIFall17MiniAODv2-PU201712Apr201894Xmc2017-2632477341b0033d0ee33ee9e5481e57/USER',1]
-    dictSamples['QCD_9'] = ['/QCD_Pt_2400to3200_TuneCP5_13TeV_pythia8/algomez-QCDPt2400to3200TuneCP513TeVpythia8RunIIFall17MiniAODv2-PU201712Apr201894Xmc2017-2632477341b0033d0ee33ee9e5481e57/USER',1]
-    dictSamples['QCD_10'] = ['/QCD_Pt_3200toInf_TuneCP5_13TeV_pythia8/algomez-QCDPt3200toInfTuneCP513TeVpythia8RunIIFall17MiniAODv2-PU201712Apr201894Xmc2017-2632477341b0033d0ee33ee9e5481e57/USER',1]
-    '''
     dictSamples['SingleTop_1'] = ['/ST_t-channel_antitop_4f_inclusiveDecays_13TeV-powhegV2-madspin-pythia8_TuneCUETP8M1/algomez-STt-channelantitop4finclusiveDecays13TeV-powhegV2-madspin-pythia8TuneCUETP8M1-dafc15ff64439ee3efd0c8e48ce3e57e/USER',1]
 
     dictSamples['SingleTop_2'] = ["/ST_t-channel_top_4f_inclusiveDecays_13TeV-powhegV2-madspin-pythia8_TuneCUETP8M1/algomez-STt-channeltop4finclusiveDecays13TeV-powhegV2-madspin-pythia8TuneCUETP8M1-dafc15ff64439ee3efd0c8e48ce3e57e/USER",1]
@@ -265,8 +170,6 @@ if __name__ == '__main__':
     dictSamples['Wjets_1'] = ['/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/algomez-WJetsToLNuTuneCUETP8M113TeV-amcatnloFXFX-pythia8RunIISummer16MiniAODv3-PUMoriond1794X-dafc15ff64439ee3efd0c8e48ce3e57e/USER', 1]
 
     dictSamples['Wjets_2'] = ['/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/algomez-WJetsToLNuTuneCUETP8M113TeV-amcatnloFXFX-pythia8RunIISummer16MiniAODv3-PUMoriond1794X_ext2-v1-dafc15ff64439ee3efd0c8e48ce3e57e/USER', 1]
-    
-    
     '''
     dictSamples['QCD_1'] = ['/QCD_Pt_170to300_TuneCUETP8M1_13TeV_pythia8/algomez-QCDPt170to300TuneCUETP8M113TeVpythia8RunIISummer16MiniAODv3-PUMoriond1794XmcRun2-dafc15ff64439ee3efd0c8e48ce3e57e/USER',1]
     dictSamples['QCD_2'] = ['/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/algomez-QCDPt300to470TuneCUETP8M113TeVpythia8RunIISummer16MiniAODv3-PUMoriond1794XmcRun2-dafc15ff64439ee3efd0c8e48ce3e57e/USER',1]
@@ -279,6 +182,7 @@ if __name__ == '__main__':
     dictSamples['QCD_9'] = [ '/QCD_Pt_2400to3200_TuneCUETP8M1_13TeV_pythia8/algomez-QCDPt2400to3200TuneCUETP8M113TeVpythia8RunIISummer16MiniAODv3-PUMoriond1794XmcRun2-dafc15ff64439ee3efd0c8e48ce3e57e/USER',1]
     dictSamples['QCD_10'] = ['/QCD_Pt_3200toInf_TuneCUETP8M1_13TeV_pythia8/algomez-QCDPt3200toInfTuneCUETP8M113TeVpythia8RunIISummer16MiniAODv3-PUMoriond1794XmcRun2-dafc15ff64439ee3efd0c8e48ce3e57e/USER',1]
     '''
+
     processingSamples = {}
     if 'all' in options.datasets:
         for sam in dictSamples: processingSamples[ sam ] = dictSamples[ sam ]

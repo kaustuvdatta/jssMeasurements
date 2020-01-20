@@ -14,11 +14,13 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 from PhysicsTools.NanoAODTools.postprocessing.framework.crabhelper import inputFiles,runsAndLumis
 
 #from PhysicsTools.NanoAODTools.postprocessing.modules.common.puWeightProducer import puWeight_2016 #puAutoWeight_2016 #puWeight_2016     
-#from PhysicsTools.NanoAODTools.postprocessing.modules.btv.btagSFProducer import btagSF2016         
+from PhysicsTools.NanoAODTools.postprocessing.modules.btv.btagSFProducer import btagSF2016         
 #from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetRecalib import jetRecalib2016BCDAK8Puppi, jetRecalib2016EFAK8Puppi, jetRecalib2016GHAK8Puppi
 
 # our module
-from Analysis.jetObservables.nSubProducer import nsubjettinessProducer
+
+#from Analysis.jetObservables.nSubProducer import nsubjettinessProducer
+from Analysis.jetObservables.nSubProducer_axscan_data import nsubjettinessProducer
 #from Analysis.jetObservables.nSubproducer_WP import nsubjettinessProducer     
 #from Analysis.jetObservables.nSubProducer_matched_TTSemilept import nsubjettinessProducer
 #from Analysis.jetObservables.nSubProducer_matched_bbveto_TTSemilept import nsubjettinessProducer
@@ -84,8 +86,20 @@ print inputFiles()
 #print 'Applying cuts : ' + cuts
 #jetRecalib2016BCDAK8Puppi(),
 #puWeight_2016(), btagSF2016()
+
+
+jetmetCorrector = createJMECorrector(isMC=False, dataYear=2016, jesUncert="All", redojec=True)
+fatJetCorrector = createJMECorrector(isMC=False, dataYear=2016, jesUncert="All", redojec=True, jetType = "AK8PFPuppi") 
+
+modulesToRun = [
+        jetmetCorrector(),
+        fatJetCorrector(),
+        btagSF2016(),
+        nsubjettinessProducer()
+        ]
+
 p1=PostProcessor( ".", inputFiles(), "", "keep_and_drop.txt",
-                    modules=[nsubjettinessProducer()], 
+                    modules=modulesToRun,#modules=[nsubjettinessProducer()], 
                     provenance=True,
                     fwkJobReport=True,
                     #jsonInput=runsAndLumis(),
