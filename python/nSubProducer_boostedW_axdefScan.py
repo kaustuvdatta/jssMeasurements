@@ -5,7 +5,7 @@ import fastjet
 #import getUncertaintiesToRun
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 
-# 2016 Lepton scale factors  
+# 2016 Lepton scale factors
 #mutriggerSFfile_16BtoF = ROOT.TFile.Open('$CMSSW_BASE/src/data/EfficienciesAndSF_RunBtoF_2016.root')
 #mutriggerSFfile_16GH = ROOT.TFile.Open('$CMSSW_BASE/src/data/EfficienciesAndSF_RunGH_2016.root')
 
@@ -16,9 +16,6 @@ ROOT.PyConfig.IgnoreCommandLineOptions = True
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Object
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 from PhysicsTools.NanoAODTools.postprocessing.tools import *
-from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetUncertainties import *
-from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetSmearer import jetSmearer
-
 
 class nsubjettinessProducer(Module):
     def __init__(self):
@@ -29,12 +26,12 @@ class nsubjettinessProducer(Module):
         self.R = 0.8
         self.ptmin = 200
         self.maxTau = 10
-	
-       
+
+
     def beginJob(self, histFile, histDirName):
         Module.beginJob(self, histFile, histDirName)
-  
 
+        ### defining variables (not sure why here)
         self.nSub0p5 = ROOT.NsubjettinessWrapper( 0.5, 0.8, 0, 0 ) #beta, cone size, measureDef 0=Normalize, axesDef 0=KT_axes
         self.nSub1 = ROOT.NsubjettinessWrapper( 1, 0.8, 0, 0 )
         self.nSub2 = ROOT.NsubjettinessWrapper( 2, 0.8, 0, 0 )
@@ -49,7 +46,7 @@ class nsubjettinessProducer(Module):
         self.sd = ROOT.SoftDropWrapper(self.beta, self.zcut, self.R, self.ptmin)
 
         self.dummy = 0;
-	
+
 	#JES
         #self.jesUncertaintiesToRun = []
         #if '16MC' in self.era: self.jesUncertaintiesToRun = jesUncertaintySources2016
@@ -75,7 +72,7 @@ class nsubjettinessProducer(Module):
         self.AK4GenJetBranchName = "GenJet"
         #self.genPartBranchName = "GenPart"
         self.genMETBranchName = "GenMET"
-        
+
         ### Kinematics Cuts Jets ###
         self.minJetPt = 200.
         self.minJetSDMass = 40.
@@ -93,13 +90,13 @@ class nsubjettinessProducer(Module):
         self.minTightElectronPt = 120.
         self.minElectronPt = 35.
         self.range1ElectronEta = [0,1.442]
-        self.range2ElectronEta = [1.56,2.5]  
+        self.range2ElectronEta = [1.56,2.5]
         self.minElectronMET = 80.
 
         ### Kinematic Cuts b-jets ###
         self.minbJetPt = 30.
         self.maxbJetEta = 2.4
-        
+
         ### b-tag
         self.minBDisc = 0.8484
 
@@ -109,13 +106,25 @@ class nsubjettinessProducer(Module):
 	self.kinematic_labels = ["_pt", "_eta", "_phi", "_mass"]
 	self.nSub_labels = ["_tau_0p5_", "_tau_1_", "_tau_2_"]
 
+        ### Booking histograms
+        self.addObject( ROOT.TH1F('recoJetPt', ';AK8 reco jet pt [GeV]', 500, 0, 5000) )
+        self.addObject( ROOT.TH1F('recoJetSDmass', ';AK8 reco jet SD mass [GeV]', 500, 0, 500) )
+        self.addObject( ROOT.TH1F('recoJetEta', ';AK8 reco jet eta', 40, -5, 5) )
+        self.addObject( ROOT.TH1F('recoJetTau21', ';AK8 reco jet #tau_{21}', 40, 0, 1) )
+        self.addObject( ROOT.TH1F('genJetPt', ';AK8 gen jet pt [GeV]', 500, 0, 5000) )
+        self.addObject( ROOT.TH1F('genJetEta', ';AK8 gen jet eta', 40, -5, 5) )
+        self.addObject( ROOT.TH1F('genJetTau21', ';AK8 gen jet #tau_{21}', 40, 0, 1) )
+
+        self.addObject( ROOT.TH2F('respJetTau21', ';AK8 gen jet #tau_{21};AK8 reco jet #tau_{21}', 40, 0, 1, 40, 0, 1) )
+
+
     def endJob(self):
         Module.endJob(self)
         pass
 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
-	
+
 
         for ijet in ["0"]: #,1] :
             for x in self.kinematic_labels:
@@ -132,13 +141,13 @@ class nsubjettinessProducer(Module):
 
             self.out.branch("dr_LepJet",  "F")
             self.out.branch("dphi_LepJet",  "F")
-            self.out.branch("dphi_LepMet", "F") 
+            self.out.branch("dphi_LepMet", "F")
             self.out.branch("dphi_MetJet",  "F")
             self.out.branch("dphi_WJet"  ,  "F")
             self.out.branch("dR_gen_reco_AK8", "F")
             self.out.branch("dR_genW_genAK8", "F")
             self.out.branch("MET",  "F")
-            self.out.branch("leptonicW_pT",  "F")            
+            self.out.branch("leptonicW_pT",  "F")
             self.out.branch("lepton_pT",  "F")
             self.out.branch("passedMETfilters",  "I")
             self.out.branch("genmatchedrecoAK8",  "I")
@@ -158,33 +167,33 @@ class nsubjettinessProducer(Module):
             for x in self.kinematic_labels:
 		self.out.branch("sd_goodrecojet" + ijet + "%s"%x,  "F")
             self.out.branch("sd_goodrecojet" + ijet + "_nConst",  "I")
-            
+
             for x in self.kinematic_labels:
 		self.out.branch("sd_goodgenjet" + ijet + "%s"%x,  "F")
             self.out.branch("sd_goodgenjet" + ijet + "_nConst",  "I")
-            
+
 
             for tauN in range(self.maxTau):
 		for x in self.nSub_labels:
-		    
+
 		    self.out.branch("goodrecojet" + ijet + "%s"%x +str(tauN),  "F")
 		    self.out.branch("goodgenjet" + ijet + "%s"%x +str(tauN),  "F")
-		    
+
                     self.out.branch("goodrecojet" + ijet + "%s"%x +str(tauN) + "_WTA_kT",  "F")
 		    self.out.branch("goodgenjet" + ijet + "%s"%x +str(tauN) + "_WTA_kT",  "F")
-                    
+
 		    self.out.branch("goodrecojet" + ijet + "%s"%x +str(tauN) + "_OP_kT",  "F")
                     self.out.branch("goodgenjet" + ijet + "%s"%x +str(tauN) + "_OP_kT",  "F")
-                    
+
 		    self.out.branch("sd_goodrecojet" + ijet + "%s"%x +str(tauN),  "F")
                     self.out.branch("sd_goodgenjet" + ijet + "%s"%x +str(tauN),  "F")
-		    
+
 		    self.out.branch("sd_goodrecojet" + ijet + "%s"%x +str(tauN) + "_WTA_kT",  "F")
 		    self.out.branch("sd_goodgenjet" + ijet + "%s"%x +str(tauN) + "_WTA_kT",  "F")
-                
+
  		    self.out.branch("sd_goodrecojet" + ijet + "%s"%x +str(tauN) + "_OP_kT",  "F")
  		    self.out.branch("sd_goodgenjet" + ijet + "%s"%x +str(tauN) + "_OP_kT",  "F")
-              
+
         pass
 
 
@@ -193,15 +202,10 @@ class nsubjettinessProducer(Module):
 
     def analyze(self, event):
         '''process event, return True (go to next module) or False (fail, go to next event)'''
-        
-        isMC = event.run == 1
 
-        self.dummy+=1
-        if (self.dummy > 20000): return False
+        isMC = event.run == 1
         if self.verbose: print ('Event : ', event.event)
-        if self.dummy%1000==0: print ("Analyzing events...", self.dummy)
-            
-    
+
         ### Get W->jj candidate ###
         gen_ak8 = list(Collection(event, self.genJetBranchName ))
         jets = list(Collection(event, self.jetBranchName ))
@@ -212,7 +216,7 @@ class nsubjettinessProducer(Module):
         met = Object(event, self.metBranchName)
 
         #electronTrigger = event.HLT_Ele115_CaloIdVT_GsfTrkIdT
-        
+
         if isMC==True:
             genParticles = Collection(event, self.genCandsAK8BranchName)
             genPartAll = Collection(event, self.genCandsBranchName)
@@ -220,15 +224,15 @@ class nsubjettinessProducer(Module):
         #list real W's, match gen-level hadronically daughting W's to selected W candidate jets at reco-level
         genWmoms = []
         genWdaughts = []
-        
-        
+
+
         Tmom = [x for x in genPartAll if x.pt>10 and abs(x.pdgId)==6]
         Tdaughts = [x for x in genPartAll if x.pt>1 and (abs(x.pdgId)==5 or abs(x.pdgId)==24)]
 
         Wdaughts = [x for x in genPartAll if x.pt>1. and 0<abs(x.pdgId)<9]
-        
+
         Wmom = [x for x in genPartAll if x.pt>10. and abs(x.pdgId)==24]
-   
+
 
         if len(Wdaughts)>0 and len(Wmom)>0 and len(Tdaughts)>0 and len(Tmom)>0 :
             for x in Wdaughts:
@@ -240,34 +244,34 @@ class nsubjettinessProducer(Module):
                             #self.out.fillBranch("GPIdx_W",x.genPartIdxMother)
                             genWmoms.append(y)
                             genWdaughts.append(x)
-                                        
+
                     except:
                         continue
 
 
         ### Applying selections ###
-        
+
         # applying basic selections to loose leptons, to decide on veto or not (only using muons for now)
 
         if not event.HLT_Mu50: return False
         if not event.nMuon > 0: return False
-        if not event.nFatJet > 0: return False  
+        if not event.nFatJet > 0: return False
         muonTrigger = event.HLT_Mu50
 
         recoElectrons  = [x for x in electrons if x.pt>self.minElectronPt and x.cutBased_HEEP and ((self.range1ElectronEta[0]<abs(x.p4().Eta())<self.range1ElectronEta[1]) or (self.range2ElectronEta[0]<abs(x.p4().Eta())<self.range2ElectronEta[1]))]
 
-        recoMuons = [ x for x in muons if x.pt > self.minMuonPt and x.highPtId > 1 and abs(x.p4().Eta()) < self.maxMuonEta and x.pfRelIso03_all < 0.1]  
+        recoMuons = [ x for x in muons if x.pt > self.minMuonPt and x.highPtId > 1 and abs(x.p4().Eta()) < self.maxMuonEta and x.pfRelIso03_all < 0.1]
 
         recoElectrons.sort(key=lambda x:x.pt, reverse=True)
         recoMuons.sort(key=lambda x:x.pt, reverse=True)
-        
+
         if not len(recoMuons) > 0 or not recoMuons[0].pt > self.minTightMuonPt or not abs(recoMuons[0].eta) < self.maxTightMuonEta: return False
         #if not recoMuons[0].highPtId >= 2 or not recoMuons[0].isPFcand or not recoMuons[0].pfIsoId >= 4: return False
 
         recoLepton=ROOT.TLorentzVector()
         lepflag = -1
         if len(recoMuons)+len(recoElectrons)>=1:
-            if len(recoMuons)>=1:                
+            if len(recoMuons)>=1:
                 if muonTrigger==0: return False
                 lepflag=1
                 recoLepton = recoMuons[0].p4()
@@ -281,7 +285,7 @@ class nsubjettinessProducer(Module):
             return False
         MET = ROOT.TLorentzVector()
         MET.SetPtEtaPhiE(met.pt, 0., met.phi, met.sumEt)
-    
+
 
         passedMETFilters = False
         try:
@@ -302,12 +306,12 @@ class nsubjettinessProducer(Module):
         for p in pfCands :
             t = ROOT.TLorentzVector( p.p4().Px(), p.p4().Py(), p.p4().Pz(), p.p4().E())
             pw =  p.puppiWeight
-            
+
             recoCandsVec.push_back(t)
             tp = ROOT.TLorentzVector(p.p4().Px(), p.p4().Py(), p.p4().Pz(), p.p4().E())
-            tp = tp * pw           
+            tp = tp * pw
             #if pw > 0. :
-            #print "Applying PUPPI weights" 
+            #print "Applying PUPPI weights"
             recoCandsPUPPIweightedVec.push_back(tp)
 
 
@@ -320,16 +324,16 @@ class nsubjettinessProducer(Module):
 
         recoAK8 = ROOT.TLorentzVector()
         recoAK8.SetPtEtaPhiM(recojets[0].pt_nom,recojets[0].eta,recojets[0].phi,recojets[0].mass_nom)
-    
+
 
         dR_AK8Lepton = recoAK8.DeltaR(recoLepton)
         if abs(dR_AK8Lepton)<1. : return False #take care of lepton overlap
 
         ### applying basic selection to ak4-jets if any, if passed these are b-jet candidates
         recoAK4jets = [ x for x in bjets if x.pt > self.minbJetPt and abs(x.p4().Eta()) < self.maxbJetEta and x.btagCSVV2 > self.minBDisc and recoAK8.DeltaR(x.p4())>1.]
-    
+
         if len(recoAK4jets)<1: return False #exit if no AK4-jets in event
-            
+
 
         recoAK4 = ROOT.TLorentzVector()
         recoAK4.SetPtEtaPhiM(recoAK4jets[0].pt, recoAK4jets[0].eta,recoAK4jets[0].phi,recoAK4jets[0].mass)
@@ -337,29 +341,30 @@ class nsubjettinessProducer(Module):
             return False
         if abs(recoAK4.DeltaR(recoAK8))<0.8:
                 return False
-        
-
-        genjets = [x for x in gen_ak8 if x.pt > 0.8*self.minJetPt and  abs(x.p4().Eta()) < self.maxJetEta]
-        genjets.sort(key=lambda x:x.pt,reverse=True)
-        
-
-        if len(genjets)<1: 
-            print "#exit if no gen-jets in event", event.event
-            return False #exit if no gen-jets in event
 
 
-        dRmin=[0.2,0]
+        if isMC:
+            genjets = [x for x in gen_ak8 if x.pt > 0.8*self.minJetPt and  abs(x.p4().Eta()) < self.maxJetEta]
+            genjets.sort(key=lambda x:x.pt,reverse=True)
 
-        for i in xrange(0,len(genjets)):
-            genjet_4v = ROOT.TLorentzVector()
-            genjet_4v.SetPtEtaPhiM(genjets[i].pt, genjets[i].eta, genjets[i].phi, genjets[i].mass)
-            if abs(genjet_4v.DeltaR(recoAK8))<dRmin[0]:
-                dRmin[0] = abs(genjet_4v.DeltaR(recoAK8))
-                dRmin[1] = i
-	
-	goodgenjet = genjets[dRmin[1]]	
-	genlevelAK8 = ROOT.TLorentzVector()
-        genlevelAK8.SetPtEtaPhiM(goodgenjet.pt, goodgenjet.eta, goodgenjet.phi, goodgenjet.mass)	
+
+            if len(genjets)<1:
+                print "#exit if no gen-jets in event", event.event
+                return False #exit if no gen-jets in event
+
+
+            dRmin=[0.2,0]
+
+            for i in xrange(0,len(genjets)):
+                genjet_4v = ROOT.TLorentzVector()
+                genjet_4v.SetPtEtaPhiM(genjets[i].pt, genjets[i].eta, genjets[i].phi, genjets[i].mass)
+                if abs(genjet_4v.DeltaR(recoAK8))<dRmin[0]:
+                    dRmin[0] = abs(genjet_4v.DeltaR(recoAK8))
+                    dRmin[1] = i
+
+            goodgenjet = genjets[dRmin[1]]
+            genlevelAK8 = ROOT.TLorentzVector()
+            genlevelAK8.SetPtEtaPhiM(goodgenjet.pt, goodgenjet.eta, goodgenjet.phi, goodgenjet.mass)
 
         self.realW = 0
         ###Matching recojets to gen-level W's and W daughters
@@ -367,7 +372,7 @@ class nsubjettinessProducer(Module):
             for W in genWmoms:
                 genW_4v = ROOT.TLorentzVector()
                 genW_4v.SetPtEtaPhiM(W.pt,W.eta,W.phi,W.mass)
-                
+
                 if abs(recoAK8.DeltaR(genW_4v))<0.8:
 
                     ndec = 0
@@ -375,54 +380,56 @@ class nsubjettinessProducer(Module):
 
                         gendec_4v = ROOT.TLorentzVector()
                         gendec_4v.SetPtEtaPhiM(Wdec.pt,Wdec.eta,Wdec.phi,Wdec.mass)
-                    
+
                         if abs(recoAK8.DeltaR(gendec_4v))<0.6:
                             ndec +=1
 
-                    if ndec>1: 
+                    if ndec>1:
                         self.out.fillBranch("dR_AK8motherW_mW", abs(recoAK8.DeltaR(genW_4v)))
                         self.out.fillBranch("dR_AK8qi_mW", abs(recoAK8.DeltaR(gendec_4v)))
                         self.out.fillBranch("PID_mW", W.pdgId)
                         self.realW = 1
-                    else: 
+                    else:
                         self.out.fillBranch("PID_umW", W.pdgId)
-                        self.realW = 0 
+                        self.realW = 0
 
-        self.isgenW=0      
+        self.isgenW=0
         if isMC:
             for W in genWmoms:
                 genW_4v = ROOT.TLorentzVector()
                 genW_4v.SetPtEtaPhiM(W.pt,W.eta,W.phi,W.mass)
-                
+
                 if abs(genlevelAK8.DeltaR(genW_4v))<0.8:
 
                     ndec = 0
                     for Wdec in genWdaughts:
                         gendec_4v = ROOT.TLorentzVector()
                         gendec_4v.SetPtEtaPhiM(Wdec.pt,Wdec.eta,Wdec.phi,Wdec.mass)
-                    
+
                         if abs(genlevelAK8.DeltaR(gendec_4v))<0.6:
                             ndec +=1
 
-                    if ndec>1: 
+                    if ndec>1:
                         #self.out.fillBranch("genmatchedgenAK8", 1)
                         self.isgenW=1
                         self.out.fillBranch("dR_genW_genAK8", abs(genlevelAK8.DeltaR(genW_4v)))
                     else:
                         #self.out.fillBranch("genmatchedgenAK8", 0)
                         self.isgenW=0
-               
-                        
+
+
         #Store the mMDT groomed (leading) reco AK8PUPPI jet
         #pfCandsVec = ROOT.vector("TLorentzVector")()
 
         #for p in pfCands :
         #    pfCandsVec.push_back( ROOT.TLorentzVector( p.p4().Px(), p.p4().Py(), p.p4().Pz(), p.p4().E()) )
-        
+
         sdrecojets = self.sd.result( recoCandsPUPPIweightedVec)#pfCandsVec )
 
         if len(pfCands) == 0 :
             return False
+        ### Storing goodreco jet as list for later use
+        goodrecojet = []
 
         #Run calculations of NSub bases and store for ungroomed recojets
         for irecojet,recojet in enumerate(recojets):
@@ -445,15 +452,16 @@ class nsubjettinessProducer(Module):
             nsub0p5_OP_kT = self.nSub0p5_OP_kT.getTau( self.maxTau, constituents )
             nsub1_OP_kT = self.nSub1_OP_kT.getTau( self.maxTau, constituents )
             nsub2_OP_kT = self.nSub2_OP_kT.getTau( self.maxTau, constituents )
-                    
+
             if (irecojet < 1 ): #to extract only the leading jet
 
+                goodrecojet.append( recojet )
                 self.out.fillBranch("goodrecojet" + str(irecojet) + "_pt",  recojet.pt_nom )
                 self.out.fillBranch("goodrecojet" + str(irecojet) + "_eta",  recojet.p4().Eta() )
                 self.out.fillBranch("goodrecojet" + str(irecojet) + "_phi",  recojet.p4().Phi() )
                 self.out.fillBranch("goodrecojet" + str(irecojet) + "_mass",  recojet.p4().M() )
                 self.out.fillBranch("goodrecojet" + str(irecojet) + "_softdrop_mass", recojet.msoftdrop_nom)
-                self.out.fillBranch("leptonicW_pT",leptonicWCand.Pt())                  
+                self.out.fillBranch("leptonicW_pT",leptonicWCand.Pt())
                 self.out.fillBranch("lepton_pT",recoLepton.Pt())
                 self.out.fillBranch("MET", met.pt)
                 self.out.fillBranch("dr_LepJet"  , abs(dR_AK8Lepton))
@@ -461,32 +469,50 @@ class nsubjettinessProducer(Module):
                 self.out.fillBranch("dphi_LepMet", abs(recoLepton.DeltaPhi(MET)))
                 self.out.fillBranch("dphi_MetJet", abs(recoAK8.DeltaPhi(MET)))
                 self.out.fillBranch("dphi_WJet" , abs(recoAK8.DeltaPhi(leptonicWCand)))
-                self.out.fillBranch("genmatchedrecoAK8",  self.realW)   
+                self.out.fillBranch("genmatchedrecoAK8",  self.realW)
 
-                if recojet.tau1 > 0.: 
+                if recojet.tau1 > 0.:
                     tau21 = recojet.tau2/recojet.tau1
                 else:
-                    tau21 = -1. 
-                    
+                    tau21 = -1.
+
                 self.out.fillBranch("goodrecojet" + str(irecojet) + "_tau21", tau21)
                 self.out.fillBranch("goodrecojet" + str(irecojet) + "_N21",  recojet.n2b1)
                 self.out.fillBranch("passedMETfilters",passedMETFilters)
 
+                ###### filling histos
+                getattr( self, 'recoJetPt' ).Fill( recojet.pt_nom )
+                getattr( self, 'recoJetEta' ).Fill( recojet.eta )
+                getattr( self, 'recoJetSDmass' ).Fill( recojet.msoftdrop_nom )
+                getattr( self, 'recoJetTau21' ).Fill( tau21 )
+                goodrecojet.append( tau21 )
+
                 for tauN in range(self.maxTau):
 		    if nsub0p5[tauN]==0. or nsub1[tauN]==0. or nsub2[tauN]==0.:
-  			self.out.fillBranch("recoEventNo_taus_are_0", event.event) 
+  			self.out.fillBranch("recoEventNo_taus_are_0", event.event)
                     self.out.fillBranch("goodrecojet" + str(irecojet) + "_tau_0p5_"+str(tauN),  nsub0p5[tauN]  )
                     self.out.fillBranch("goodrecojet" + str(irecojet) + "_tau_1_"+str(tauN),  nsub1[tauN]  )
                     self.out.fillBranch("goodrecojet" + str(irecojet) + "_tau_2_"+str(tauN),  nsub2[tauN]  )
+                    goodrecojet.append( nsub0p5[tauN] )
+                    goodrecojet.append( nsub1[tauN] )
+                    goodrecojet.append( nsub2[tauN] )
 
                     self.out.fillBranch("goodrecojet" + str(irecojet) + "_tau_0p5_"+str(tauN) + "_WTA_kT",  nsub0p5_WTA_kT[tauN]  )
                     self.out.fillBranch("goodrecojet" + str(irecojet) + "_tau_1_"+str(tauN) + "_WTA_kT",  nsub1_WTA_kT[tauN]  )
                     self.out.fillBranch("goodrecojet" + str(irecojet) + "_tau_2_"+str(tauN) + "_WTA_kT",  nsub2_WTA_kT[tauN]  )
+                    goodrecojet.append( nsub0p5_WTA_kT[tauN] )
+                    goodrecojet.append( nsub1_WTA_kT[tauN] )
+                    goodrecojet.append( nsub2_WTA_kT[tauN] )
 
                     self.out.fillBranch("goodrecojet" + str(irecojet) + "_tau_0p5_"+str(tauN) + "_OP_kT",  nsub0p5_OP_kT[tauN]  )
                     self.out.fillBranch("goodrecojet" + str(irecojet) + "_tau_1_"+str(tauN) + "_OP_kT",  nsub1_OP_kT[tauN]  )
                     self.out.fillBranch("goodrecojet" + str(irecojet) + "_tau_2_"+str(tauN) + "_OP_kT",  nsub2_OP_kT[tauN]  )
+                    goodrecojet.append( nsub0p5_OP_kT[tauN] )
+                    goodrecojet.append( nsub1_OP_kT[tauN] )
+                    goodrecojet.append( nsub2_OP_kT[tauN] )
 
+        ### Storing goodreco jet as list for later use
+        goodsdrecojet = []
         #Run calculations of NSub bases and store for groomed recojets
         for irecojet,recojet in enumerate(sdrecojets):
 
@@ -508,8 +534,9 @@ class nsubjettinessProducer(Module):
             nsub0p5_OP_kT = self.nSub0p5_OP_kT.getTau( self.maxTau, constituents )
             nsub1_OP_kT = self.nSub1_OP_kT.getTau( self.maxTau, constituents )
             nsub2_OP_kT = self.nSub2_OP_kT.getTau( self.maxTau, constituents )
-                    
+
             if (irecojet < 1 ): #to extract only the leading jet
+                goodsdrecojet.append( recojet )
 
                 self.out.fillBranch("sd_goodrecojet" + str(irecojet) + "_pt",  recojet.perp() )
                 self.out.fillBranch("sd_goodrecojet" + str(irecojet) + "_eta",  recojet.eta() )
@@ -529,89 +556,28 @@ class nsubjettinessProducer(Module):
                     self.out.fillBranch("sd_goodrecojet" + str(irecojet) + "_tau_0p5_"+str(tauN) + "_OP_kT",  nsub0p5_OP_kT[tauN]  )
                     self.out.fillBranch("sd_goodrecojet" + str(irecojet) + "_tau_1_"+str(tauN) + "_OP_kT",  nsub1_OP_kT[tauN]  )
                     self.out.fillBranch("sd_goodrecojet" + str(irecojet) + "_tau_2_"+str(tauN) + "_OP_kT",  nsub2_OP_kT[tauN]  )
-        
-        genpart_CandsVec = ROOT.vector("TLorentzVector")()
-        
-        #Store the mMDT groomed (leading) genjet
-        for p in genParticles :
-            genpart_CandsVec.push_back( ROOT.TLorentzVector( p.p4().Px(), p.p4().Py(), p.p4().Pz(), p.p4().E()) )
-        
-        sdgenjets = self.sd.result( genpart_CandsVec )
 
-        if len(genpart_CandsVec) == 0 :
-            return False
 
-        #Run calculations of NSub bases and store for ungroomed genjets
-        # Cluster only the particles near the appropriate jet to save time
-        constituents = ROOT.vector("TLorentzVector")()
+        if isMC:
+            genpart_CandsVec = ROOT.vector("TLorentzVector")()
 
-        for x in genpart_CandsVec:
+            #Store the mMDT groomed (leading) genjet
+            for p in genParticles :
+                genpart_CandsVec.push_back( ROOT.TLorentzVector( p.p4().Px(), p.p4().Py(), p.p4().Pz(), p.p4().E()) )
 
-            if abs(goodgenjet.p4().DeltaR( x )) < 0.8:
-                constituents.push_back(x)
-        nsub0p5 = self.nSub0p5.getTau( self.maxTau, constituents )
-        nsub1 = self.nSub1.getTau( self.maxTau, constituents )
-        nsub2 = self.nSub2.getTau( self.maxTau, constituents )
-        
-        nsub0p5_WTA_kT = self.nSub0p5_WTA_kT.getTau( self.maxTau, constituents )
-        nsub1_WTA_kT = self.nSub1_WTA_kT.getTau( self.maxTau, constituents )
-        nsub2_WTA_kT = self.nSub2_WTA_kT.getTau( self.maxTau, constituents )
-        
-        nsub0p5_OP_kT = self.nSub0p5_OP_kT.getTau( self.maxTau, constituents )
-        nsub1_OP_kT = self.nSub1_OP_kT.getTau( self.maxTau, constituents )
-        nsub2_OP_kT = self.nSub2_OP_kT.getTau( self.maxTau, constituents )
-                    
-	self.out.fillBranch("goodgenjet0_pt",  goodgenjet.pt)
-        self.out.fillBranch("goodgenjet0_eta",  goodgenjet.p4().Eta() )
-        self.out.fillBranch("goodgenjet0_phi",  goodgenjet.p4().Phi() )
-        self.out.fillBranch("goodgenjet0_mass",  goodgenjet.p4().M() )
-        self.out.fillBranch("dR_gen_reco_AK8",  dRmin[0])   
-        self.out.fillBranch("genmatchedgenAK8", self.isgenW)
-        #self.out.fillBranch("matched_genAK8_recoAK8",  self.match_gen_reco)   
+            sdgenjets = self.sd.result( genpart_CandsVec )
 
-        tau11 = 0
-        tau21 = 0 
-        for tauN in range(self.maxTau):
-            if tauN==0:
-                tau11 = nsub1[tauN]
-            if tauN==1:
-                tau21 = nsub1[tauN]
-	    if nsub0p5[tauN]==0. or nsub1[tauN]==0. or nsub2[tauN]==0.:
-		self.out.fillBranch("genEventNo_taus_are_0", event.event) 
-                print nsub0p5
-                print nsub1
-                print nsub2
+            if len(genpart_CandsVec) == 0 :
+                return False
 
-            self.out.fillBranch("goodgenjet0_tau_0p5_"+str(tauN),  nsub0p5[tauN]  )
-            self.out.fillBranch("goodgenjet0_tau_1_"+str(tauN),  nsub1[tauN]  )
-            self.out.fillBranch("goodgenjet0_tau_2_"+str(tauN),  nsub2[tauN]  )
-        
-            self.out.fillBranch("goodgenjet0_tau_0p5_"+str(tauN) + "_WTA_kT",  nsub0p5_WTA_kT[tauN]  )
-            self.out.fillBranch("goodgenjet0_tau_1_"+str(tauN) + "_WTA_kT",  nsub1_WTA_kT[tauN]  )
-            self.out.fillBranch("goodgenjet0_tau_2_"+str(tauN) + "_WTA_kT",  nsub2_WTA_kT[tauN]  )
-
-            self.out.fillBranch("goodgenjet0_tau_0p5_"+str(tauN) + "_OP_kT",  nsub0p5_OP_kT[tauN]  )
-            self.out.fillBranch("goodgenjet0_tau_1_"+str(tauN) + "_OP_kT",  nsub1_OP_kT[tauN]  )
-            self.out.fillBranch("goodgenjet0_tau_2_"+str(tauN) + "_OP_kT",  nsub2_OP_kT[tauN]  )
-        
-        
-        if tau11!=0.:
-            self.out.fillBranch("goodgenjet0_tau21", tau21/tau11 )
-        else:
-            self.out.fillBranch("goodgenjet0_tau21", -1. )
-        
-        #Run calculations of NSub bases and store for groomed genjets
-        for i_sd_genjet,sd_genjet in enumerate(sdgenjets):
-
+            #Run calculations of NSub bases and store for ungroomed genjets
             # Cluster only the particles near the appropriate jet to save time
             constituents = ROOT.vector("TLorentzVector")()
 
-            for x in sd_genjet.constituents():
+            for x in genpart_CandsVec:
 
-                sd_constits = ROOT.TLorentzVector( x.px(), x.py(), x.pz(), x.E())
-                if abs( sd_genjet.delta_R( x )) < 0.8:
-                    constituents.push_back(sd_constits)
-
+                if abs(goodgenjet.p4().DeltaR( x )) < 0.8:
+                    constituents.push_back(x)
             nsub0p5 = self.nSub0p5.getTau( self.maxTau, constituents )
             nsub1 = self.nSub1.getTau( self.maxTau, constituents )
             nsub2 = self.nSub2.getTau( self.maxTau, constituents )
@@ -623,28 +589,96 @@ class nsubjettinessProducer(Module):
             nsub0p5_OP_kT = self.nSub0p5_OP_kT.getTau( self.maxTau, constituents )
             nsub1_OP_kT = self.nSub1_OP_kT.getTau( self.maxTau, constituents )
             nsub2_OP_kT = self.nSub2_OP_kT.getTau( self.maxTau, constituents )
-                    
-            if (i_sd_genjet < 1 ): #to extract only the leading jet
 
-                self.out.fillBranch("sd_goodgenjet" + str(i_sd_genjet) + "_pt",   sd_genjet.perp() )
-                self.out.fillBranch("sd_goodgenjet" + str(i_sd_genjet) + "_eta",  sd_genjet.eta() )
-                self.out.fillBranch("sd_goodgenjet" + str(i_sd_genjet) + "_phi",  sd_genjet.phi() )
-                self.out.fillBranch("sd_goodgenjet" + str(i_sd_genjet) + "_mass", sd_genjet.m() )
+            self.out.fillBranch("goodgenjet0_pt",  goodgenjet.pt)
+            self.out.fillBranch("goodgenjet0_eta",  goodgenjet.p4().Eta() )
+            self.out.fillBranch("goodgenjet0_phi",  goodgenjet.p4().Phi() )
+            self.out.fillBranch("goodgenjet0_mass",  goodgenjet.p4().M() )
+            self.out.fillBranch("dR_gen_reco_AK8",  dRmin[0])
+            self.out.fillBranch("genmatchedgenAK8", self.isgenW)
+            #self.out.fillBranch("matched_genAK8_recoAK8",  self.match_gen_reco)
 
-                for tauN in range(self.maxTau):
+            tau11 = 0
+            tau21 = 0
+            for tauN in range(self.maxTau):
+                if tauN==0:
+                    tau11 = nsub1[tauN]
+                if tauN==1:
+                    tau21 = nsub1[tauN]
+                if nsub0p5[tauN]==0. or nsub1[tauN]==0. or nsub2[tauN]==0.:
+                    self.out.fillBranch("genEventNo_taus_are_0", event.event)
+                    print nsub0p5
+                    print nsub1
+                    print nsub2
 
-                    self.out.fillBranch("sd_goodgenjet" + str(i_sd_genjet) + "_tau_0p5_"+str(tauN),  nsub0p5[tauN]  )
-                    self.out.fillBranch("sd_goodgenjet" + str(i_sd_genjet) + "_tau_1_"+str(tauN),  nsub1[tauN]  )
-                    self.out.fillBranch("sd_goodgenjet" + str(i_sd_genjet) + "_tau_2_"+str(tauN),  nsub2[tauN]  )
-                    
-                    self.out.fillBranch("sd_goodgenjet" + str(i_sd_genjet) + "_tau_0p5_"+str(tauN) + "_WTA_kT",  nsub0p5_WTA_kT[tauN]  )
-                    self.out.fillBranch("sd_goodgenjet" + str(i_sd_genjet) + "_tau_1_"+str(tauN) + "_WTA_kT",  nsub1_WTA_kT[tauN]  )
-                    self.out.fillBranch("sd_goodgenjet" + str(i_sd_genjet) + "_tau_2_"+str(tauN) + "_WTA_kT",  nsub2_WTA_kT[tauN]  )
-                    
-                    self.out.fillBranch("sd_goodgenjet" + str(i_sd_genjet) + "_tau_0p5_"+str(tauN) + "_OP_kT",  nsub0p5_OP_kT[tauN]  )
-                    self.out.fillBranch("sd_goodgenjet" + str(i_sd_genjet) + "_tau_1_"+str(tauN) + "_OP_kT",  nsub1_OP_kT[tauN]  )
-                    self.out.fillBranch("sd_goodgenjet" + str(i_sd_genjet) + "_tau_2_"+str(tauN) + "_OP_kT",  nsub2_OP_kT[tauN]  )
-            
+                self.out.fillBranch("goodgenjet0_tau_0p5_"+str(tauN),  nsub0p5[tauN]  )
+                self.out.fillBranch("goodgenjet0_tau_1_"+str(tauN),  nsub1[tauN]  )
+                self.out.fillBranch("goodgenjet0_tau_2_"+str(tauN),  nsub2[tauN]  )
+
+                self.out.fillBranch("goodgenjet0_tau_0p5_"+str(tauN) + "_WTA_kT",  nsub0p5_WTA_kT[tauN]  )
+                self.out.fillBranch("goodgenjet0_tau_1_"+str(tauN) + "_WTA_kT",  nsub1_WTA_kT[tauN]  )
+                self.out.fillBranch("goodgenjet0_tau_2_"+str(tauN) + "_WTA_kT",  nsub2_WTA_kT[tauN]  )
+
+                self.out.fillBranch("goodgenjet0_tau_0p5_"+str(tauN) + "_OP_kT",  nsub0p5_OP_kT[tauN]  )
+                self.out.fillBranch("goodgenjet0_tau_1_"+str(tauN) + "_OP_kT",  nsub1_OP_kT[tauN]  )
+                self.out.fillBranch("goodgenjet0_tau_2_"+str(tauN) + "_OP_kT",  nsub2_OP_kT[tauN]  )
+
+
+            if tau11!=0.:
+                self.out.fillBranch("goodgenjet0_tau21", tau21/tau11 )
+            else:
+                self.out.fillBranch("goodgenjet0_tau21", -1. )
+
+            ###### filling histos
+            getattr( self, 'genJetPt' ).Fill( goodgenjet.pt )
+            getattr( self, 'genJetEta' ).Fill( goodgenjet.eta )
+            getattr( self, 'genJetTau21' ).Fill( tau21/tau11 )
+
+            #Run calculations of NSub bases and store for groomed genjets
+            for i_sd_genjet,sd_genjet in enumerate(sdgenjets):
+
+                # Cluster only the particles near the appropriate jet to save time
+                constituents = ROOT.vector("TLorentzVector")()
+
+                for x in sd_genjet.constituents():
+
+                    sd_constits = ROOT.TLorentzVector( x.px(), x.py(), x.pz(), x.E())
+                    if abs( sd_genjet.delta_R( x )) < 0.8:
+                        constituents.push_back(sd_constits)
+
+                nsub0p5 = self.nSub0p5.getTau( self.maxTau, constituents )
+                nsub1 = self.nSub1.getTau( self.maxTau, constituents )
+                nsub2 = self.nSub2.getTau( self.maxTau, constituents )
+
+                nsub0p5_WTA_kT = self.nSub0p5_WTA_kT.getTau( self.maxTau, constituents )
+                nsub1_WTA_kT = self.nSub1_WTA_kT.getTau( self.maxTau, constituents )
+                nsub2_WTA_kT = self.nSub2_WTA_kT.getTau( self.maxTau, constituents )
+
+                nsub0p5_OP_kT = self.nSub0p5_OP_kT.getTau( self.maxTau, constituents )
+                nsub1_OP_kT = self.nSub1_OP_kT.getTau( self.maxTau, constituents )
+                nsub2_OP_kT = self.nSub2_OP_kT.getTau( self.maxTau, constituents )
+
+                if (i_sd_genjet < 1 ): #to extract only the leading jet
+
+                    self.out.fillBranch("sd_goodgenjet" + str(i_sd_genjet) + "_pt",   sd_genjet.perp() )
+                    self.out.fillBranch("sd_goodgenjet" + str(i_sd_genjet) + "_eta",  sd_genjet.eta() )
+                    self.out.fillBranch("sd_goodgenjet" + str(i_sd_genjet) + "_phi",  sd_genjet.phi() )
+                    self.out.fillBranch("sd_goodgenjet" + str(i_sd_genjet) + "_mass", sd_genjet.m() )
+
+                    for tauN in range(self.maxTau):
+
+                        self.out.fillBranch("sd_goodgenjet" + str(i_sd_genjet) + "_tau_0p5_"+str(tauN),  nsub0p5[tauN]  )
+                        self.out.fillBranch("sd_goodgenjet" + str(i_sd_genjet) + "_tau_1_"+str(tauN),  nsub1[tauN]  )
+                        self.out.fillBranch("sd_goodgenjet" + str(i_sd_genjet) + "_tau_2_"+str(tauN),  nsub2[tauN]  )
+
+                        self.out.fillBranch("sd_goodgenjet" + str(i_sd_genjet) + "_tau_0p5_"+str(tauN) + "_WTA_kT",  nsub0p5_WTA_kT[tauN]  )
+                        self.out.fillBranch("sd_goodgenjet" + str(i_sd_genjet) + "_tau_1_"+str(tauN) + "_WTA_kT",  nsub1_WTA_kT[tauN]  )
+                        self.out.fillBranch("sd_goodgenjet" + str(i_sd_genjet) + "_tau_2_"+str(tauN) + "_WTA_kT",  nsub2_WTA_kT[tauN]  )
+
+                        self.out.fillBranch("sd_goodgenjet" + str(i_sd_genjet) + "_tau_0p5_"+str(tauN) + "_OP_kT",  nsub0p5_OP_kT[tauN]  )
+                        self.out.fillBranch("sd_goodgenjet" + str(i_sd_genjet) + "_tau_1_"+str(tauN) + "_OP_kT",  nsub1_OP_kT[tauN]  )
+                        self.out.fillBranch("sd_goodgenjet" + str(i_sd_genjet) + "_tau_2_"+str(tauN) + "_OP_kT",  nsub2_OP_kT[tauN]  )
+
 
         return True
 
