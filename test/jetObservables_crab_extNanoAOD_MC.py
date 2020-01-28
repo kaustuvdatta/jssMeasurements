@@ -21,7 +21,8 @@ from PhysicsTools.NanoAODTools.postprocessing.modules.btv.btagSFProducer import 
 from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetHelperRun2 import *  
 
 # our module
-from Analysis.jetObservables.nSubProducer_axscan import nsubjettinessProducer #for groomed and ungroomed gen- and reco-jets in semileptonic ttbar with axisdef={0,3,6}  
+#from Analysis.jetObservables.nSubProducer_axscan import nsubjettinessProducer #for groomed and ungroomed gen- and reco-jets in semileptonic ttbar with axisdef={0,3,6}  
+from Analysis.jetObservables.nSubProducer_boostedW_axdefScan import nsubjettinessProducer
 #from Analysis.jetObservables.nSubProducer import nsubjettinessProducer #vanilla, for ungroomed recojets in semileptonic ttbar 
 #from Analysis.jetObservables.nSubProducer_gen_reco import nsubjettinessProducer #for ungroomed gen- and reco-jets in semileptonic ttbar with Escheme+excl. kT 
 #from Analysis.jetObservables.nSubProducer_QCD import nsubjettinessProducer
