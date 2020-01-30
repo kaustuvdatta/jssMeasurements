@@ -19,11 +19,11 @@ scram b -j 6
 To run local:
 ```bash
 cd Analysis/jetObservables/test/
-python jetObservables_crab_extNanoAOD.py 1
+python jetObservables_nSubProducer.py --sample TTJets --local
 ```
 
 To run in crab:
 ```bash
 cd Analysis/jetObservables/test/
-python multicrab.py -d SingleMuon -v v01
+python multicrab_nSubProducer.py --datasets TTJets -v 106X_v01
 ```
