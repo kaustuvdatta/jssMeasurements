@@ -36,7 +36,7 @@ mv src $CMSSW_BASE/src
 mv python $CMSSW_BASE/python
 
 echo Found Proxy in: $X509_USER_PROXY
-echo "python {pythonFile} --sample {datasets}
+echo "python {pythonFile} --sample {datasets}"
 python {pythonFile} --sample {datasets}
 fi
     '''
@@ -66,8 +66,8 @@ def submitJobs( job, inputFiles, unitJobs ):
     config.JobType.allowUndistributedCMSSW = True
 
     config.section_("Data")
-    config.Data.publication = True
-    config.Data.publishDBS = 'phys03'
+    #config.Data.publication = True
+    #config.Data.publishDBS = 'phys03'
     config.Data.inputDBS = 'phys03'
     config.Data.ignoreLocality = True
 
@@ -88,7 +88,7 @@ def submitJobs( job, inputFiles, unitJobs ):
     requestname = 'jetObservables_'+ job + '_' +options.version
     print requestname
     config.JobType.scriptExe = 'runPostProc'+options.datasets+'.sh'
-    config.JobType.inputFiles = [ 'PSet.py', options.pythonFile ,'haddnano.py', 'keep_and_drop.txt']
+    config.JobType.inputFiles = [ options.pythonFile ,'haddnano.py', 'keep_and_drop.txt']
     config.JobType.sendPythonFolder  = True
 
     #config.Data.userInputFiles = inputFiles

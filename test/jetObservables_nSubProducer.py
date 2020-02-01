@@ -99,7 +99,7 @@ modulesToRun.append( nsubjettinessProducer() )
 p1=PostProcessor(
         '.', (inputFiles() if not args.iFile else [args.iFile]),
         cut=cuts,
-        branchsel="keep_and_drop.txt",
+        #branchsel="keep_and_drop.txt",
         modules=modulesToRun,
         provenance=True,
         fwkJobReport=True,
