@@ -256,10 +256,15 @@ class nsubjettinessProducer(Module):
         '''process event, return True (go to next module) or False (fail, go to next event)'''
 
         isMC = event.run == 1
-        if self.verbose: print ('Event : ', event.event)
+        
+        self.dummy+=1
+        #if (self.dummy > 50000): return False
+        #self.verbose=True
+        if self.verbose: print ('Event : ', event.event, self.dummy)
 
         ### Get W->jj candidate ###
-        gen_ak8 = list(Collection(event, self.genJetBranchName ))
+        if isMC: gen_ak8 = list(Collection(event, self.genJetBranchName ))
+        
         jets = list(Collection(event, self.jetBranchName ))
         pfCands = list(Collection(event, self.pfCandsBranchName ))
         electrons = list(Collection(event, self.electronBranchName))
@@ -407,8 +412,8 @@ class nsubjettinessProducer(Module):
         self.out.fillBranch("goodrecojet0_pt_raw",  recojet.pt_raw )
         self.out.fillBranch("goodrecojet0_mass_raw",  recojet.mass_raw )
         self.out.fillBranch("goodrecojet0_corr_JEC",  recojet.corr_JEC )
-        self.out.fillBranch("goodrecojet0_corr_JER",  recojet.corr_JER )
         if isMC:
+            self.out.fillBranch("goodrecojet0_corr_JER",  recojet.corr_JER )
             self.out.fillBranch("goodrecojet0_corr_JMS",  recojet.corr_JMS )
             self.out.fillBranch("goodrecojet0_corr_JMR",  recojet.corr_JMR )
             self.out.fillBranch("goodrecojet0_mass_jmrUp",  recojet.mass_jmrUp )
@@ -522,8 +527,8 @@ class nsubjettinessProducer(Module):
             self.out.fillBranch("sd_goodrecojet0_pt_raw",  sdrecojetFull.pt_raw )
             self.out.fillBranch("sd_goodrecojet0_mass_raw",  sdrecojetFull.mass_raw )
             self.out.fillBranch("sd_goodrecojet0_corr_JEC",  sdrecojetFull.corr_JEC )
-            self.out.fillBranch("sd_goodrecojet0_corr_JER",  sdrecojetFull.corr_JER )
             if isMC:
+                self.out.fillBranch("sd_goodrecojet0_corr_JER",  sdrecojetFull.corr_JER )
                 self.out.fillBranch("sd_goodrecojet0_corr_JMS",  sdrecojetFull.corr_JMS )
                 self.out.fillBranch("sd_goodrecojet0_corr_JMR",  sdrecojetFull.corr_JMR )
                 self.out.fillBranch("sd_goodrecojet0_mass_jmrUp",  sdrecojetFull.mass_jmrUp )
@@ -748,8 +753,8 @@ class nsubjettinessProducer(Module):
             ###### filling histos
             getattr( self, 'genJetPt' ).Fill( goodgenjet.pt )
             getattr( self, 'genJetEta' ).Fill( goodgenjet.eta )
-            getattr( self, 'genJetTau21' ).Fill( tau21/tau11 )
-
+            if tau11!=0.: getattr( self, 'genJetTau21' ).Fill( tau21/tau11 )
+            else: getattr( self, 'genJetTau21' ).Fill(-1. )
 
             #Run calculations of NSub bases and store for groomed genjets
             for i_sd_genjet,sd_genjet in enumerate(sdgenjets):
@@ -797,6 +802,7 @@ class nsubjettinessProducer(Module):
                         self.out.fillBranch("sd_goodgenjet" + str(i_sd_genjet) + "_tau_2_"+str(tauN) + "_OP_kT",  nsub2_OP_kT[tauN]  )
 
 
+
         return True
 
     ##################### Helpful functions
@@ -819,4 +825,5 @@ class nsubjettinessProducer(Module):
             if p4.DeltaR(subjet.p4()) < dRmax and len(ret) < 2 :
                 ret.append(subjet.p4())
         return ret
+
 

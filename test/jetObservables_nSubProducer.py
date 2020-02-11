@@ -12,7 +12,7 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 #this takes care of converting the input files from CRAB
 from PhysicsTools.NanoAODTools.postprocessing.framework.crabhelper import inputFiles,runsAndLumis
 
-from PhysicsTools.NanoAODTools.postprocessing.modules.common.puWeightProducer import puWeight_2016, puAutoWeight_2016 #puWeight_2016
+from PhysicsTools.NanoAODTools.postprocessing.modules.common.puWeightProducer import puWeight_2016, puAutoWeight_2016
 from PhysicsTools.NanoAODTools.postprocessing.modules.btv.btagSFProducer import btagSF2016
 from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetHelperRun2 import *
 
@@ -68,7 +68,9 @@ parser.add_argument(
     required=False
 )
 args = parser.parse_args(sys.argv[1:])
-if args.sample.startswith( ('EGamma', 'Single') ): isMC = False
+if ('EGamma' in args.sample or 'Single' in args.sample) or  ('EGamma' in args.iFile or 'Single' in args.iFile): 
+    isMC = False
+    print "sample is from data"
 else: isMC = True
 
 ### General selections:
@@ -92,8 +94,9 @@ modulesToRun = []
 if isMC: modulesToRun.append( puWeight_2016() )
 modulesToRun.append( jetmetCorrector() )
 modulesToRun.append( fatJetCorrector() )
-modulesToRun.append( btagSF2016() )
+if isMC: modulesToRun.append( btagSF2016() )
 modulesToRun.append( nsubjettinessProducer() )
+
 
 #### Make it run
 p1=PostProcessor(
@@ -114,4 +117,5 @@ p1=PostProcessor(
 p1.run()
 print "DONE"
 if not args.local: os.system("ls -lR")
+
 
