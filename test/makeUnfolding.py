@@ -4,6 +4,8 @@
 #!/usr/bin/env python
 import argparse, os, shutil, sys
 from ROOT import *
+import ROOT
+from datasets import *
 #import CMS_lumi as CMS_lumi
 #18 import tdrstyle as tdrstyle
 ####gReset()
@@ -18,18 +20,36 @@ def createDatacards( dataFile, MCFile, histo ):
 
     ### Getting input histos
     dataHisto = dataFile.Get( 'jetObservables/recoJet'+histo )
-    dataHisto.Rebin(2)
+    dataHisto.Scale( dataScale )
+    dataHisto.Rebin(5)
 
     MCHisto = {}
     for ih in [ 'recoJet', 'genJet', 'respJet' ]:
         MCHisto[ih] = MCFile.Get( 'jetObservables/'+ih+histo )
+        MCHisto[ih].Scale( dataHisto.Integral()/MCHisto[ih].Integral())
+        #MCHisto[ih].Scale( MCScale )
         if not ih.startswith('resp'):
             #MCHisto[ih].Scale( 1./MCHisto[ih].Integral() )
-            MCHisto[ih].Rebin(2)
-        else: MCHisto[ih].Rebin2D(2,2)
+            MCHisto[ih].Rebin(5)
+        else: MCHisto[ih].Rebin2D(5,5)
 
     MCHisto['recoJetScaled'] = MCHisto['recoJet'].Clone()
-    MCHisto['recoJetScaled'].Scale( dataHisto.Integral() )
+    MCHisto['recoJetScaled'].Scale( dataHisto.Integral()/MCHisto['recoJet'].Integral() )
+
+    #print '----> Using RooUnfold'
+    #R = ROOT.RooUnfoldResponse( MCHisto['recoJet'].Clone(), MCHisto['genJet'].Clone(), MCHisto['respJet'].Clone()  )
+    #unfold = ROOT.RooUnfoldInvert( R, dataHisto )
+    #hUnf = unfold.Hreco()
+    can = TCanvas('can', 'can', 750, 800 )
+    MCHisto['recoJetScaled'].Draw("hist")
+    dataHisto.SetMarkerStyle(20)
+    dataHisto.Draw("ep same")
+    MCHisto['recoJetScaled'].SetMaximum( 1.2*max(dataHisto.GetMaximum(), MCHisto['recoJetScaled'].GetMaximum()) )
+    can.SaveAs('test.png')
+
+    can2D = TCanvas('can2D', 'can2D', 750, 800 )
+    MCHisto['respJet'].Draw("colz")
+    can2D.SaveAs('test2D.png')
 
     if args.process.startswith('datacard'):
         datacard = open('datacard.txt', 'w')
@@ -39,66 +59,67 @@ def createDatacards( dataFile, MCFile, histo ):
         datacard.write("----------------\n")
         datacard.write("bin ")
         for ireco in range(1, dataHisto.GetNbinsX()+1 ):
-            if dataHisto.GetBinContent(ireco)<0.01: continue
+            if dataHisto.GetBinContent(ireco)<1: continue
             #if ireco<5 or ireco>15: continue
             datacard.write("Reco_"+str(ireco)+" ")
         datacard.write("\n")
 
         datacard.write("observation ")
         for ireco in range(1, dataHisto.GetNbinsX()+1 ):
-            if dataHisto.GetBinContent(ireco)<0.01: continue
+            if dataHisto.GetBinContent(ireco)<1: continue
             #if ireco<5 or ireco>15: continue
-            datacard.write( str( dataHisto.GetBinContent(ireco))+" " )
+            datacard.write( str( int(dataHisto.GetBinContent(ireco)))+" " )
         datacard.write("\n")
         datacard.write("----------------\n")
 
         cleanup=True
         datacard.write("bin ")
         for ireco in range(1, MCHisto['recoJet'].GetNbinsX()+1):
-            if dataHisto.GetBinContent(ireco)<0.01: continue
+            if dataHisto.GetBinContent(ireco)<1: continue
             #if ireco<5 or ireco>15: continue
             for igen in range(1, MCHisto['genJet'].GetNbinsX()+1):
                 # remove un-necessary processes
-                if cleanup and MCHisto['respJet'].GetBinContent(ireco,igen)<0.01: continue
+                if cleanup and MCHisto['respJet'].GetBinContent(igen,ireco)<1: continue
                 datacard.write("Reco_%d "%ireco) ##sig igen, in reco ireco
             #datacard.write("Reco_%d "%ireco)## bkg
         datacard.write("\n")
 
         datacard.write("process ")
         for ireco in range(1, MCHisto['recoJet'].GetNbinsX()+1):
-            if dataHisto.GetBinContent(ireco)<0.01: continue
+            if dataHisto.GetBinContent(ireco)<1: continue
             #if ireco<5 or ireco>15: continue
             for igen in range(1, MCHisto['genJet'].GetNbinsX()+1):
-                if cleanup and MCHisto['respJet'].GetBinContent(ireco,igen)<0.01: continue
+                if cleanup and MCHisto['respJet'].GetBinContent(igen,ireco)<1: continue
                 datacard.write("Gen_%d "%igen) ##sig igen, in reco ireco
             #datacard.write("Bkg ")## bkg
         datacard.write("\n")
 
         datacard.write("process ")
         for ireco in range(1, MCHisto['recoJet'].GetNbinsX()+1):
-            if dataHisto.GetBinContent(ireco)<0.01: continue
+            if dataHisto.GetBinContent(ireco)<1: continue
             #if ireco<5 or ireco>15: continue
             for igen in range(1, MCHisto['genJet'].GetNbinsX()+1):
-                if cleanup and MCHisto['respJet'].GetBinContent(ireco,igen)<0.01: continue
+                if cleanup and MCHisto['respJet'].GetBinContent(igen,ireco)<1: continue
                 datacard.write("%d "%(-igen)) ## 0 -1, -2 --> for signal
             #datacard.write("1 ")## bkg >0 for bkg
         datacard.write("\n")
 
         datacard.write("rate ")
         for ireco in range(1, MCHisto['recoJet'].GetNbinsX()+1):
-            if dataHisto.GetBinContent(ireco)<0.01: continue
+            if dataHisto.GetBinContent(ireco)<1: continue
             #if ireco<5 or ireco>15: continue
             for igen in range(1, MCHisto['genJet'].GetNbinsX()+1):
-                if cleanup and MCHisto['respJet'].GetBinContent(ireco,igen)<0.01: continue
-                datacard.write("%.2f "% ( MCHisto['respJet'].GetBinContent(ireco,igen)))
+                if cleanup and MCHisto['respJet'].GetBinContent(igen,ireco)<1: continue
+                datacard.write("%.2f "% ( MCHisto['respJet'].GetBinContent(igen,ireco)))
             #datacard.write("1 ")
             #datacard.write("%.2f "%(MCHisto['recoJetScaled'].GetBinContent(ireco) if MCHisto['recoJetScaled'].GetBinContent(ireco)>0 else 1))##
         datacard.write("\n")
         datacard.write("----------------\n")
 
-        po=' '.join(["--PO map='.*/Gen_%d:r_bin%d[1,-20,20]'"%(igen,igen) for igen in range(1, dataHisto.GetNbinsX()+1) if dataHisto.GetBinContent(igen)>0 ])
+        po=' '.join(["--PO map='.*Gen_%d:r_bin%d[1,-1,20]'"%(igen,igen) for igen in range(1, dataHisto.GetNbinsX()+1) if dataHisto.GetBinContent(igen)>0 ])
+        cmdText2Workspace = "text2workspace.py --X-allow-no-background datacard.txt -o datacard.root -P HiggsAnalysis.CombinedLimit.PhysicsModel:multiSignalModel "+po
         datacard.write("### RUN WITH COMMANDS: ####\n")
-        datacard.write("# text2workspace.py --X-allow-no-background datacard.txt -o datacard.root -P HiggsAnalysis.CombinedLimit.PhysicsModel:multiSignalModel "+po+"\n")
+        datacard.write("# "+cmdText2Workspace+"\n")
         datacard.write("# Run with command: combine -M MultiDimFit --algo singles -d datacard.root -t 0 \n")
         datacard.write("############################\n")
 
@@ -143,9 +164,11 @@ if __name__ == '__main__':
         parser.print_help()
         sys.exit(0)
 
-    MCFile = TFile( 'histograms_TTJets.root' )
-    dataFile = TFile( 'histograms_TT.root' )
-
+    lumi = 35000
+    MCFile = TFile( 'Rootfiles/jetObservables_histograms_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8.root')
+    MCScale = checkDict( 'TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', dictSamples )['XS'] * lumi / checkDict( 'TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', dictSamples )['2016']['nevents']
+    dataFile = TFile( 'Rootfiles/jetObservables_histograms_TT_TuneCUETP8M2T4_13TeV-powheg-pythia8.root' )
+    dataScale = checkDict( 'TT_TuneCUETP8M2T4_13TeV-powheg-pythia8', dictSamples )['XS'] * lumi / checkDict( 'TT_TuneCUETP8M2T4_13TeV-powheg-pythia8', dictSamples )['2016']['nevents']
     histo = 'Tau21'
 
     createDatacards( dataFile, MCFile, histo )
