@@ -15,9 +15,9 @@ git cms-addpkg GeneratorInterface/Core
 git clone https://github.com/UBParker/NanoAODJMAR.git PhysicsTools/NanoAODJMAR
 git clone https://github.com/cms-nanoAOD/nanoAOD-tools.git PhysicsTools/NanoAODTools
 git clone https://github.com/cms-jet/NanoAODJMARTools.git PhysicsTools/NanoAODJMARTools
-git clone ssh://git@gitlab.cern.ch:7999/asparker/QJetMass.git Analysis/QJetMass    ### This is just as example
-git clone https://github.com/alefisico/jetObservables.git -b 106X Analysis/jetObservables
-ln -s $CMSSW_BASE/src/PhysicsTools/NanoAODTools/scripts/haddnano.py Analysis/jetObservables/test/
+git clone https://github.com/alefisico/jetObservables.git -b 106X jetObservables/
+git clone ssh://git@gitlab.cern.ch:7999/asparker/QJetMass.git jetObservables/QJetMass    ### This is just as example
+ln -s $CMSSW_BASE/src/PhysicsTools/NanoAODTools/scripts/haddnano.py jetObservables/Skimmer/test/
 scram b -j 6
 ```
 
@@ -25,13 +25,13 @@ scram b -j 6
 
 To run local:
 ```bash
-cd Analysis/jetObservables/test/
+cd jetObservables/Skimmer/test/
 python jetObservables_nSubProducer.py --sample TTJets --local
 ```
 
 To run in crab:
 ```bash
-cd Analysis/jetObservables/test/
+cd jetObservables/Skimmer/test/
 python multicrab_nSubProducer.py --datasets TTJets -v 106X_v01
 ```
 
@@ -47,7 +47,7 @@ scram b -j 8
 
 To run:
 ```bash
-cd Analysis/jetObservables/test/
+cd jetObservables/Skimmer/test/
 git clone https://github.com/cms-sw/genproductions.git
 mv genproductions/test/calculateXSectionAndFilterEfficiency/ .
 rm -rf genproductions
