@@ -6,14 +6,17 @@ import argparse, os, shutil, sys
 from ROOT import *
 import ROOT
 from datasets import *
-from DrawHistogram import plotSimpleComparison
-#import CMS_lumi as CMS_lumi
-#18 import tdrstyle as tdrstyle
+from array import array
+import numpy as np
+from DrawHistogram import plotSimpleComparison, plotUnfold
+sys.path.insert(0,'../python/')
+import CMS_lumi as CMS_lumi
+import tdrstyle as tdrstyle
 ####gReset()
 gROOT.SetBatch()
-#gROOT.ForceStyle()
-#tdrstyle.setTDRStyle()
-#gStyle.SetOptStat(0)
+gROOT.ForceStyle()
+tdrstyle.setTDRStyle()
+gStyle.SetOptStat(0)
 
 
 def createDatacards( dataFile, sigFiles, bkgFiles, variables ):
@@ -21,99 +24,108 @@ def createDatacards( dataFile, sigFiles, bkgFiles, variables ):
 
     ### Getting input histos
     dataHistos = loadHistograms( dataFile, variables, isMC=False )
-    dataHisto = dataHistos['datarecoJet']
-
-    MCHisto = loadHistograms( sigFiles, variables )
-    MCHisto['ttbarMadgraphrecoJet'].Scale(  dataHisto.Integral()/MCHisto['ttbarMadgraphrecoJet'].Integral())
-    MCHisto['ttbarMadgraphgenJet'].Scale(  dataHisto.Integral()/MCHisto['ttbarMadgraphgenJet'].Integral())
-    MCHisto['ttbarMadgraphrespJet'].Scale(  dataHisto.Integral()/MCHisto['ttbarMadgraphrespJet'].Integral())
-
-    #print '----> Using RooUnfold'
-    #R = ROOT.RooUnfoldResponse( MCHisto['recoJet'].Clone(), MCHisto['genJet'].Clone(), MCHisto['respJet'].Clone()  )
-    #unfold = ROOT.RooUnfoldInvert( R, dataHisto )
-    #hUnf = unfold.Hreco()
-
-    ######## Cross check
-    plotSimpleComparison( dataHisto, 'ttbarPower', MCHisto['ttbarMadgraphrecoJet'], 'ttbarMadgraph', 'tau21', rebinX=variables['Tau21'][0], version=args.version  )
-
-    #can2D = TCanvas('can2D', 'can2D', 750, 800 )
-    #MCHisto['respJet'].Draw("colz")
-    #can2D.SaveAs('test2D.png')
+    signalHistos = loadHistograms( sigFiles, variables )
+    if args.process.startswith('data'): bkgHistos = loadHistograms( bkgFiles, variables )
+    else:
+        for ih in signalHistos: signalHistos[ih].Scale( dataHistos['Tau21_data_recoJet'].Integral()/signalHistos[ih].Integral() )
 
     for ivar in variables:
-        datacardName = 'datacard_'+ivar
+
+        print '|------> Unfolding '+ivar
+
+        ######## Cross check: plotting data vs all MC
+        print '|------> Cross check: plotting data vs all MC'
+        allBkgHisto = dataHistos[ivar+'_data_recoJet'].Clone()
+        allBkgHisto.Reset()
+        if args.process.startswith('data'):
+            for ibkg in bkgHistos:
+                if ibkg.startswith(ivar) and ibkg.endswith('recoJet'):
+                    allBkgHisto.Add( bkgHistos[ibkg].Clone() )
+        allMCHisto = allBkgHisto.Clone()
+        allMCHisto.Add( signalHistos[ ivar+'_'+next(iter(sigFiles))+'_recoJet' ].Clone() )
+        plotSimpleComparison( dataHistos[ivar+'_data_recoJet'].Clone(), 'data', allMCHisto, 'allBkgs', ivar+'_from'+('Data' if args.process.startswith('data') else 'MC')+'_'+next(iter(sigFiles)), rebinX=variables[ivar][0], version=args.version  )
+
+        ######## Cross check: plotting response matrix
+        tdrStyle.SetPadRightMargin(0.12)
+        print '|------> Cross check: plotting response matrix for signal'
+        can2D = TCanvas(ivar+'can2D', ivar+'can2D', 750, 500 )
+        signalHistos[ivar+"_"+next(iter(sigFiles))+'_respJet'].Draw("colz")
+        can2D.SaveAs('Plots/'+ivar+'_from'+('Data' if args.process.startswith('data') else 'MC')+'_'+next(iter(sigFiles))+'_responseMatrix.png')
+
+        #print '----> Using RooUnfold'
+        #R = ROOT.RooUnfoldResponse( signalHistos['recoJet'].Clone(), signalHistos['genJet'].Clone(), signalHistos['respJet'].Clone()  )
+        #unfold = ROOT.RooUnfoldInvert( R, dataHisto )
+        #hUnf = unfold.Hreco()
+
+        ######## Creating datacard for combine
+        datacardName = 'datacard_'+ivar+'_from'+('Data' if args.process.startswith('data') else 'MC')+'_'+next(iter(sigFiles))
+        print '|------> Creating datacard: ', datacardName
+
         datacard = open( datacardName+'.txt', 'w')
         datacard.write("* imax\n")
         datacard.write("* jmax\n")
         datacard.write("* kmax\n")
         datacard.write("----------------\n")
         datacard.write("bin ")
-        for ireco in range(1, dataHisto.GetNbinsX()+1 ):
-            if dataHisto.GetBinContent(ireco)<1: continue
-            #if ireco<5 or ireco>15: continue
-            datacard.write("Reco_"+str(ireco)+" ")
+        for ibin in range(1, dataHistos[ivar+'_data_recoJet'].GetNbinsX()+1 ):
+            if dataHistos[ivar+'_data_recoJet'].GetBinContent(ibin)<1: continue  ### remove low stat bin
+            datacard.write("Reco_"+str(ibin)+" ")
         datacard.write("\n")
 
         datacard.write("observation ")
-        for ireco in range(1, dataHisto.GetNbinsX()+1 ):
-            if dataHisto.GetBinContent(ireco)<1: continue
-            #if ireco<5 or ireco>15: continue
-            datacard.write( str( int(dataHisto.GetBinContent(ireco)))+" " )
+        for ibin in range(1, dataHistos[ivar+'_data_recoJet'].GetNbinsX()+1 ):
+            if dataHistos[ivar+'_data_recoJet'].GetBinContent(ibin)<1: continue
+            datacard.write( str( dataHistos[ivar+'_data_recoJet'].GetBinContent(ibin) )+" " )
         datacard.write("\n")
         datacard.write("----------------\n")
 
-        cleanup=True
         datacard.write("bin ")
-        for ireco in range(1, MCHisto['ttbarMadgraphrecoJet'].GetNbinsX()+1):
-            if dataHisto.GetBinContent(ireco)<1: continue
-            #if ireco<5 or ireco>15: continue
-            for igen in range(1, MCHisto['ttbarMadgraphgenJet'].GetNbinsX()+1):
-                # remove un-necessary processes
-                if cleanup and MCHisto['ttbarMadgraphrespJet'].GetBinContent(igen,ireco)<1: continue
-                datacard.write("Reco_%d "%ireco) ##sig igen, in reco ireco
-            #datacard.write("Reco_%d "%ireco)## bkg
+        for ibinReco in range(1, dataHistos[ivar+'_data_recoJet'].GetNbinsX()+1 ):
+            if dataHistos[ivar+'_data_recoJet'].GetBinContent(ibin)<1: continue
+            for ibinGen in range(1, dataHistos[ivar+'_data_recoJet'].GetNbinsX()+1 ):
+                if signalHistos[ivar+'_'+next(iter(sigFiles))+'_respJet'].GetBinContent(ibinGen,ibinReco)<1: continue
+                datacard.write("Reco_"+str(ibinReco)+' ')    ### one for ibinGen and one for ibinReco
+            if args.process.startswith('data'): datacard.write("Reco_"+str(ibinReco)+' ')    ### one for all Bkgs
         datacard.write("\n")
 
         datacard.write("process ")
-        for ireco in range(1, MCHisto['ttbarMadgraphrecoJet'].GetNbinsX()+1):
-            if dataHisto.GetBinContent(ireco)<1: continue
-            #if ireco<5 or ireco>15: continue
-            for igen in range(1, MCHisto['ttbarMadgraphgenJet'].GetNbinsX()+1):
-                if cleanup and MCHisto['ttbarMadgraphrespJet'].GetBinContent(igen,ireco)<1: continue
-                datacard.write("Gen_%d "%igen) ##sig igen, in reco ireco
-            #datacard.write("Bkg ")## bkg
+        for ibinReco in range(1, dataHistos[ivar+'_data_recoJet'].GetNbinsX()+1 ):
+            if dataHistos[ivar+'_data_recoJet'].GetBinContent(ibin)<1: continue
+            for ibinGen in range(1, dataHistos[ivar+'_data_recoJet'].GetNbinsX()+1 ):
+                if signalHistos[ivar+'_'+next(iter(sigFiles))+'_respJet'].GetBinContent(ibinGen,ibinReco)<1: continue
+                datacard.write("Gen_"+str(ibinGen)+' ')
+            if args.process.startswith('data'): datacard.write("Bkg ")  ## bkg
         datacard.write("\n")
 
         datacard.write("process ")
-        for ireco in range(1, MCHisto['ttbarMadgraphrecoJet'].GetNbinsX()+1):
-            if dataHisto.GetBinContent(ireco)<1: continue
-            #if ireco<5 or ireco>15: continue
-            for igen in range(1, MCHisto['ttbarMadgraphgenJet'].GetNbinsX()+1):
-                if cleanup and MCHisto['ttbarMadgraphrespJet'].GetBinContent(igen,ireco)<1: continue
-                datacard.write("%d "%(-igen)) ## 0 -1, -2 --> for signal
-            #datacard.write("1 ")## bkg >0 for bkg
+        for ibinReco in range(1, dataHistos[ivar+'_data_recoJet'].GetNbinsX()+1 ):
+            if dataHistos[ivar+'_data_recoJet'].GetBinContent(ibin)<1: continue
+            for ibinGen in range(1, dataHistos[ivar+'_data_recoJet'].GetNbinsX()+1 ):
+                if signalHistos[ivar+'_'+next(iter(sigFiles))+'_respJet'].GetBinContent(ibinGen,ibinReco)<1: continue
+                datacard.write(" -"+str(ibinGen))   ## 0 -1, -2 --> for signal
+            if args.process.startswith('data'): datacard.write(" 1 ")                   ## bkg >0 for bkg
         datacard.write("\n")
 
         datacard.write("rate ")
-        for ireco in range(1, MCHisto['ttbarMadgraphrecoJet'].GetNbinsX()+1):
-            if dataHisto.GetBinContent(ireco)<1: continue
-            #if ireco<5 or ireco>15: continue
-            for igen in range(1, MCHisto['ttbarMadgraphgenJet'].GetNbinsX()+1):
-                if cleanup and MCHisto['ttbarMadgraphrespJet'].GetBinContent(igen,ireco)<1: continue
-                datacard.write("%.2f "% ( MCHisto['ttbarMadgraphrespJet'].GetBinContent(igen,ireco)))
-            #datacard.write("1 ")
-            #datacard.write("%.2f "%(MCHisto['recoJetScaled'].GetBinContent(ireco) if MCHisto['recoJetScaled'].GetBinContent(ireco)>0 else 1))##
+        for ibinReco in range(1, dataHistos[ivar+'_data_recoJet'].GetNbinsX()+1 ):
+            if dataHistos[ivar+'_data_recoJet'].GetBinContent(ibin)<1: continue
+            for ibinGen in range(1, dataHistos[ivar+'_data_recoJet'].GetNbinsX()+1 ):
+                if signalHistos[ivar+'_'+next(iter(sigFiles))+'_respJet'].GetBinContent(ibinGen,ibinReco)<1: continue
+                datacard.write( str( round(signalHistos[ivar+'_'+next(iter(sigFiles))+'_respJet'].GetBinContent(ibinGen,ibinReco),2))+" " )
+            if args.process.startswith('data'): datacard.write( str(round(allBkgHisto.GetBinContent(ibinReco),2))+' ' )
         datacard.write("\n")
         datacard.write("----------------\n")
 
-        po=' '.join(["--PO map='.*Gen_%d:r_bin%d[1,-1,20]'"%(igen,igen) for igen in range(1, dataHisto.GetNbinsX()+1) if dataHisto.GetBinContent(igen)>0 ])
-        cmdText2Workspace = "text2workspace.py --X-allow-no-background "+datacardName+".txt -o "+datacardName+".root -P HiggsAnalysis.CombinedLimit.PhysicsModel:multiSignalModel "+po
+        #### Creating the combine command
+        po=' '.join(["--PO map='.*Gen_%d:r_bin%d[1,-20,20]'"%(ibinGen,ibinGen) for ibinGen in range(1, dataHistos[ivar+'_data_recoJet'].GetNbinsX()+1) if dataHistos[ivar+'_data_recoJet'].GetBinContent(ibinGen)>0 ])
+        cmdText2Workspace = "text2workspace.py "+('--X-allow-no-background ' if args.process.startswith('MC') else ' ' )+datacardName+".txt -o "+datacardName+".root -P HiggsAnalysis.CombinedLimit.PhysicsModel:multiSignalModel "+po
         datacard.write("### RUN WITH COMMANDS: ####\n")
         datacard.write("# "+cmdText2Workspace+"\n")
-        print cmdText2Workspace
-        cmdCombine = 'combine -M MultiDimFit --algo singles -d "+datacardName+".root -t 0'
+        cmdCombine = 'combine -M MultiDimFit --algo singles -d '+datacardName+'.root -t 0 -n '+ivar+'_from'+('Data' if args.process.startswith('data') else 'MC')+'_'+next(iter(sigFiles))
         datacard.write("# Run with command: "+cmdCombine+" \n")
         datacard.write("############################\n")
+        print '|------> To run combine: \n', cmdText2Workspace + '\n' + cmdCombine
+
 
 ##########################################################################
 def loadHistograms( samples, variables, isMC=True ):
@@ -123,14 +135,39 @@ def loadHistograms( samples, variables, isMC=True ):
     for var in variables:
         for isam in samples:
             for ih in [ 'recoJet', 'genJet', 'respJet' ]:
-                allHistos[isam+ih] = samples[isam][1].Get( 'jetObservables/'+ih+var )
-                #if isMC:
-                MCScale = checkDict( samples[isam][0], dictSamples )['XS'] * args.lumi / checkDict( samples[isam][0], dictSamples )['2016']['nevents']
-                allHistos[isam+ih].Scale( MCScale )
+                allHistos[var+'_'+isam+'_'+ih] = samples[isam][1].Get( 'jetObservables/'+ih+var )
+                if isMC:
+                    MCScale = checkDict( samples[isam][0], dictSamples )['XS'] * args.lumi / checkDict( samples[isam][0], dictSamples )['2016']['nevents']
+                    allHistos[var+'_'+isam+'_'+ih].Scale( MCScale )
 
-                if len(variables[var])==1:
-                    if not ih.startswith('resp'): allHistos[isam+ih].Rebin( variables[var][0] )
-                    else: allHistos[isam+ih].Rebin2D( variables[var][0], variables[var][0] )
+                if not ih.startswith('resp'):
+                    if len(variables[var])==1: allHistos[var+'_'+isam+'_'+ih].Rebin( variables[var][0] )
+                    else: allHistos[var+'_'+isam+'_'+ih] = allHistos[var+'_'+isam+'_'+ih].Rebin( len(variables[var])-1, allHistos[var+'_'+isam+'_'+ih].GetName()+"_Rebin", array( 'd', variables[var] ) )
+                else:
+                    if len(variables[var])==1: allHistos[var+'_'+isam+'_'+ih].Rebin2D( variables[var][0], variables[var][0] )
+                    else:
+                        #### fancy way to create variable binning TH2D
+                        tmpHisto = TH2F( allHistos[var+'_'+isam+'_'+ih].GetName()+isam+"_Rebin", allHistos[var+'_'+isam+'_'+ih].GetName()+isam+"_Rebin", len(variables[var])-1, array( 'd', variables[var]), len(variables[var])-1, array( 'd', variables[var]) )
+
+                        tmpArrayContent = np.zeros((len(variables[var]), len(variables[var])))
+                        tmpArrayError = np.zeros((len(variables[var]), len(variables[var])))
+
+                        for biny in range( 1, allHistos[var+'_'+isam+'_'+ih].GetNbinsY()+1 ):
+                            by = allHistos[var+'_'+isam+'_'+ih].GetYaxis().GetBinCenter( biny )
+                            for binx in range( 1, allHistos[var+'_'+isam+'_'+ih].GetNbinsX()+1 ):
+                                bx = allHistos[var+'_'+isam+'_'+ih].GetXaxis().GetBinCenter(binx)
+                                for iY in range( len(variables[var])-1 ):
+                                    for iX in range( len(variables[var])-1 ):
+                                        if (by<variables[var][iY+1] and by>variables[var][iY]) and (bx<variables[var][iX+1] and bx>variables[var][iX]):
+                                            jbin = allHistos[var+'_'+isam+'_'+ih].GetBin(binx,biny)
+                                            tmpArrayContent[iX][iY] = tmpArrayContent[iX][iY] + allHistos[var+'_'+isam+'_'+ih].GetBinContent( jbin )
+                                            tmpArrayContent[iX][iY] = tmpArrayContent[iX][iY] + TMath.Power( allHistos[var+'_'+isam+'_'+ih].GetBinError( jbin ), 2 )
+
+                        for biny in range( 1, tmpHisto.GetNbinsY()+1 ):
+                            for binx in range( 1, tmpHisto.GetNbinsX()+1 ):
+                                tmpHisto.SetBinContent( tmpHisto.GetBin(binx,biny), tmpArrayContent[binx-1][biny-1] )
+
+                        allHistos[var+'_'+isam+'_'+ih] = tmpHisto
 
     return allHistos
 
@@ -141,10 +178,9 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("-p", "--process", action='store', dest="process", default="datacard", help="Process: datacard or plot." )
-    parser.add_argument("-f", "--inputFolder", action='store', dest="inputFolder", default="", help="Path of the folder where the root files are located (wihtout the root://blah//)." )
-    parser.add_argument("-o", "--outputFolder", action='store', dest="outputFolder", default="test", help="Name of output folder" )
-    parser.add_argument('-l', '--lumi', action='store', type=float, default=41530., help='Luminosity, example: 1.' )
+    parser.add_argument("-p", "--process", action='store', dest="process", default="data", help="Process to unfold: data or MC." )
+    ##parser.add_argument("-r", "--runCombine", action='store_true', dest="runCombine", help="Run combine (true)" )
+    parser.add_argument('-l', '--lumi', action='store', type=float, default=35920., help='Luminosity, example: 1.' )
     parser.add_argument("-v", "--version", action='store', dest="version", default="v00", help="Version" )
 
     try: args = parser.parse_args()
@@ -153,8 +189,8 @@ if __name__ == '__main__':
         sys.exit(0)
 
     dataFile = {}
-    #dataFile['data'] = [ 'data', TFile( 'Rootfiles/jetObservables_histograms_SingleMuon2016ALL.root' ), 'Data', 'kBlack' ]
-    dataFile['data'] = [ 'TT_TuneCUETP8M2T4_13TeV-powheg-pythia8', TFile( 'Rootfiles/jetObservables_histograms_TT_TuneCUETP8M2T4_13TeV-powheg-pythia8.root' ), 'Data', 'kBlack' ]
+    if args.process.startswith('MC'): dataFile['data'] = [ 'TT_TuneCUETP8M2T4_13TeV-powheg-pythia8', TFile( 'Rootfiles/jetObservables_histograms_TT_TuneCUETP8M2T4_13TeV-powheg-pythia8.root' ), 'Data', 'kBlack' ]
+    else: dataFile['data'] = [ 'data', TFile( 'Rootfiles/jetObservables_histograms_SingleMuon2016ALL.root' ), 'Data', 'kBlack' ]
 
     sigFiles = {}
     sigFiles['ttbarMadgraph'] = [ 'TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', TFile( 'Rootfiles/jetObservables_histograms_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8.root'), 'ttbar (madgraph)', 'kBlue' ]
@@ -171,6 +207,10 @@ if __name__ == '__main__':
 
     variables = {}
     variables[ 'Tau21' ] = [ 4 ]
+    #variables[ 'Tau21' ] = [ 0, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 1. ]
 
-    createDatacards( dataFile, sigFiles, bkgFiles, variables )
+    if args.process.endswith('plot'):
+        for ivar in variables:
+            plotUnfold(sigFiles['ttbarMadgraph'], ivar, args.lumi, variables[ivar], ivar+'_from'+('Data' if args.process.startswith('data') else 'MC')+'_'+next(iter(sigFiles)), 'Madgraph' )
+    else: createDatacards( dataFile, sigFiles, bkgFiles, variables )
 

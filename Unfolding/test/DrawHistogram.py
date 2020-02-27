@@ -36,16 +36,16 @@ selection['DL_presel'] = [ 'DL Preselection' ]
 
 canvas = {}
 
-def plotUnfold( ): #inFile1, sample, inFile2, sample2, name, rebinX=1, xmin='', xmax='', labX=0.92, labY=0.50, axisX='', axisY='', log=False, ext='png', Norm=False ):
-    """"Take two root files, make simple comparison plot"""
+def plotUnfold( signalFile, var, lumi, reBin, combineLabel, plotLabel, xmin='', xmax='', labX=0.92, labY=0.50, axisX='', axisY='', log=False, ext='png', Norm=False ):
+    """"Very specific, takes rootfile from combine and compute unfolding"""
 
-    MCFile = TFile( 'Rootfiles/jetObservables_histograms_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8.root')
-    MCScale = checkDict( 'TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', dictSamples )['XS'] * args.lumi / checkDict( 'TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', dictSamples )['2016']['nevents']
-    MCHisto = MCFile.Get('jetObservables/genJetTau21')
-    MCHisto.Scale( MCScale )
-    MCHisto.Rebin( 4 )
+    MCHisto = signalFile[1].Get('jetObservables/genJet'+var)
+    MCHisto.Scale( 1/checkDict( signalFile[0], dictSamples )['XS'] / checkDict( signalFile[0], dictSamples )['2016']['nevents'], 'width' )
+    #MCHisto.Scale( 1, 'width' )
+    if len(reBin)==1: MCHisto.Rebin( reBin[0] )
+    else: MCHisto.Rebin( len(reBin), MCHisto.GetName()+'_ReBin', array('d', reBin) )
 
-    combineFile = TFile('higgsCombineTest.MultiDimFit.mH120.root')
+    combineFile = TFile('higgsCombine'+combineLabel+'.MultiDimFit.mH120.root')
     test = combineFile.Get('limit')
 
     Xvalues = []
@@ -73,7 +73,7 @@ def plotUnfold( ): #inFile1, sample, inFile2, sample2, name, rebinX=1, xmin='', 
     legend=TLegend(0.60,0.75,0.90,0.90)
     legend.SetFillStyle(0)
     legend.SetTextSize(0.03)
-    legend.AddEntry( UnfoldGraph, 'Unfolding (combine)', 'p' )
+    legend.AddEntry( UnfoldGraph, 'Unfolding ('+plotLabel+')', 'p' )
     legend.AddEntry( MCHisto, 'MC Truth', 'l' )
 
     tdrStyle.SetPadRightMargin(0.05)
@@ -81,9 +81,12 @@ def plotUnfold( ): #inFile1, sample, inFile2, sample2, name, rebinX=1, xmin='', 
     UnfoldGraph.Draw("AP")
     MCHisto.Draw("histe same")
     legend.Draw()
+    CMS_lumi.extraText = "Simulation Preliminary"
+    #CMS_lumi.lumi_13TeV = str( round( (lumi/1000.), 2 ) )+" fb^{-1}, 13 TeV, 2016"
+    CMS_lumi.lumi_13TeV = "13 TeV, 2016"
     CMS_lumi.relPosX = 0.11
     CMS_lumi.CMS_lumi(canvas['c1'], 4, 0)
-    canvas['c1'].SaveAs('Plots/Unfolding_Tau21.png')
+    canvas['c1'].SaveAs('Plots/Unfolding_'+combineLabel+'.'+ext)
 
 
 

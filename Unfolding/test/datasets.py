@@ -52,7 +52,7 @@ dictSamples = {
             'miniAOD' : [ '/QCD_Pt-15to7000_TuneCUETP8M1_FlatP6_13TeV_pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v2/MINIAODSIM' ],
             'nanoAOD' : [ '/QCD_Pt-15to7000_TuneCUETP8M1_FlatP6_13TeV_pythia8/kadatta-QCDPt-15to7000TuneCUETP8M1FlatP613TeVpythia8RunIISummer16MiniAODv3-PUMoriond1794X-3de7f16b11abe7d2f2c8fb8b12121ea5/USER' ],
             'skimmer' : [ '' ],
-            'nevents' : 00,
+            'nevents' : 9951232.,
             'nGenWeights' : 00,
             },
         '2017' :  {
@@ -74,7 +74,7 @@ dictSamples = {
             'miniAOD' : [ '/ST_s-channel_4f_InclusiveDecays_13TeV-amcatnlo-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v1/MINIAODSIM' ],
             'nanoAOD' : [ '/ST_s-channel_4f_InclusiveDecays_13TeV-amcatnlo-pythia8/algomez-STs-channel4fInclusiveDecays13TeV-amcatnlo-pythia8RunIISummer16MiniAODv3-PUMoriond17-dafc15ff64439ee3efd0c8e48ce3e57e/USER ' ],
             'skimmer' : [ '' ],
-            'nevents' : 00,
+            'nevents' : 2989199.,
             'nGenWeights' : 00,
             },
         '2017' :  {
@@ -96,7 +96,7 @@ dictSamples = {
             'miniAOD' : [ '/ST_t-channel_antitop_4f_inclusiveDecays_13TeV-powhegV2-madspin-pythia8_TuneCUETP8M1/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v1/MINIAODSIM' ],
             'nanoAOD' : [ '/ST_t-channel_antitop_4f_inclusiveDecays_13TeV-powhegV2-madspin-pythia8_TuneCUETP8M1/algomez-STt-channelantitop4finclusiveDecays13TeV-powhegV2-madspin-pythia8TuneCUETP8M1-dafc15ff64439ee3efd0c8e48ce3e57e/USER' ],
             'skimmer' : [ '' ],
-            'nevents' : 00,
+            'nevents' : 38811017.,
             'nGenWeights' : 00,
             },
         '2017' :  {
@@ -118,7 +118,7 @@ dictSamples = {
             'miniAOD' : [ '/ST_t-channel_top_4f_inclusiveDecays_13TeV-powhegV2-madspin-pythia8_TuneCUETP8M1/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v1/MINIAODSIM' ],
             'nanoAOD' : [ "/ST_t-channel_top_4f_inclusiveDecays_13TeV-powhegV2-madspin-pythia8_TuneCUETP8M1/algomez-STt-channeltop4finclusiveDecays13TeV-powhegV2-madspin-pythia8TuneCUETP8M1-dafc15ff64439ee3efd0c8e48ce3e57e/USER" ],
             'skimmer' : [ '' ],
-            'nevents' : 00,
+            'nevents' : 67105876.,
             'nGenWeights' : 00,
             },
         '2017' :  {
@@ -140,7 +140,7 @@ dictSamples = {
             'miniAOD' : [ "/ST_tW_antitop_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M2T4/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v1/MINIAODSIM" ],
             'nanoAOD' : [ "/ST_tW_antitop_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M2T4/algomez-STtWantitop5finclusiveDecays13TeV-powheg-pythia8TuneCUETP8M2T4-dafc15ff64439ee3efd0c8e48ce3e57e/USER" ],
             'skimmer' : [ '' ],
-            'nevents' : 00,
+            'nevents' : 998276.,
             'nGenWeights' : 00,
             },
         '2017' :  {
@@ -162,7 +162,7 @@ dictSamples = {
             'miniAOD' : [ '/ST_tW_top_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M2T4/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v1/MINIAODSIM' ],
             'nanoAOD' : [ "/ST_tW_top_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M2T4/algomez-STtWtop5finclusiveDecays13TeV-powheg-pythia8TuneCUETP8M2T4-dafc15ff64439ee3efd0c8e48ce3e57e/USER" ],
             'skimmer' : [ '' ],
-            'nevents' : 00,
+            'nevents' : 992024.,
             'nGenWeights' : 00,
             },
         '2017' :  {
@@ -184,7 +184,7 @@ dictSamples = {
             'miniAOD' : [ '/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v1/MINIAODSIM', '/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3_ext2-v1/MINIAODSIM' ],
             'nanoAOD' : [ '/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/algomez-WJetsToLNuTuneCUETP8M113TeV-amcatnloFXFX-pythia8RunIISummer16MiniAODv3-PUMoriond1794X-dafc15ff64439ee3efd0c8e48ce3e57e/USER', '/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/algomez-WJetsToLNuTuneCUETP8M113TeV-amcatnloFXFX-pythia8RunIISummer16MiniAODv3-PUMoriond1794X_ext2-v1-dafc15ff64439ee3efd0c8e48ce3e57e/USER' ],
             'skimmer' : [ '' ],
-            'nevents' : 00,
+            'nevents' : 24120319.,
             'nGenWeights' : 00,
             },
         '2017' :  {
