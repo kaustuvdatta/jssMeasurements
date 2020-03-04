@@ -17,8 +17,8 @@ from PhysicsTools.NanoAODTools.postprocessing.modules.btv.btagSFProducer import 
 from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetHelperRun2 import *
 
 # our module
-from Analysis.jetObservables.nSubProducer_dijet import nsubjettinessProducerDijet
-from Analysis.jetObservables.nSubProducer_boostedW_axdefScan import nsubjettinessProducer
+from jetObservables.Skimmer.nSubProducer_dijet import nSubProdDijet
+from jetObservables.Skimmer.nSubProducer_boostedW_axdefScan import nsubjettinessProducer
 
 import argparse
 
@@ -96,11 +96,13 @@ fatJetCorrector = createJMECorrector(isMC=isMC, dataYear=args.year, jesUncert="A
 
 modulesToRun = []
 if isMC: modulesToRun.append( puWeight_2016() )
-modulesToRun.append( jetmetCorrector() )
 modulesToRun.append( fatJetCorrector() )
 #if isMC: modulesToRun.append( btagSF2016() )
-if args.selection.startswith('dijet'): modulesToRun.append( nsubjettinessProducerDijet() )
-else: modulesToRun.append( nsubjettinessProducer() )
+if args.selection.startswith('dijet'):
+    modulesToRun.append( nSubProdDijet( ) ) #sysSource=[ '_jesTotal' ] ) )
+else:
+    modulesToRun.append( jetmetCorrector() )
+    modulesToRun.append( nsubjettinessProducer() )
 
 
 #### Make it run
