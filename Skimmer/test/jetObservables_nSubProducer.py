@@ -89,8 +89,48 @@ else:
 
 cuts = PV + " && " + METFilters + " && " + Triggers
 
-
 systSources = [ '_jesTotal', '_jer', '_pu' ]
+
+### Lepton scale factors
+LeptonSF = {
+    '2016' : {
+        'muon' : {
+            'Trigger' : [ "EfficienciesAndSF_RunBtoF.root", "IsoMu24_OR_IsoTkMu24_PtEtaBins/pt_abseta_ratio" ],
+            'ID' : [ "MuonID_2016_RunBCDEF_SF_ID.root", "NUM_TightID_DEN_genTracks_eta_pt", False ],       ### True: X:pt Y:eta
+            'ISO' : [ "MuonID_2016_RunBCDEF_SF_ISO.root", "NUM_TightRelIso_DEN_TightIDandIPCut_eta_pt", True ],
+        },
+        'electron' : {
+            'Trigger' : [ "TriggerSF_Run2016All_v1.root", "Ele27_WPTight_Gsf" ],
+            'ID' : [ "2016LegacyReReco_ElectronTight_Fall17V2.root", "EGamma_SF2D", False ],
+            'ISO' : [ "EGM2D_BtoH_GT20GeV_RecoSF_Legacy2016.root", "EGamma_SF2D", False ],
+        },
+    },
+    '2017' : {
+        'muon' : {
+            'Trigger' : [ "EfficienciesAndSF_RunBtoF_Nov17Nov2017.root", "IsoMu27_PtEtaBins/pt_abseta_ratio" ],
+            'ID' : [ "MuonID_2017_RunBCDEF_SF_ID.root", "NUM_TightID_DEN_genTracks_pt_abseta", True ],     ### True: X:pt Y:eta
+            'ISO' : [ "MuonID_2017_RunBCDEF_SF_ISO.root", "NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta", True ],
+        },
+        'electron' : {
+            'Trigger' : [ "SingleEG_JetHT_Trigger_Scale_Factors_ttHbb_Data_MC_v5.0.histo.root", "SFs_ele_pt_ele_sceta_ele28_ht150_OR_ele35_2017BCDEF" ],
+            'ID' : [ "egammaEffi.txt_EGM2D_runBCDEF_passingRECO.root", "EGamma_SF2D", False ],
+            'ISO' : [ "2017_ElectronTight.root", "EGamma_SF2D", False ],
+        },
+    },
+    '2018' : {
+        'muon' : {
+            'Trigger' : [ "EfficienciesAndSF_2018Data_AfterMuonHLTUpdate.root", "IsoMu24_PtEtaBins/pt_abseta_ratio" ],
+            'ID' : [ "MuonID_2018_RunABCD_SF_ID.root", "NUM_TightID_DEN_TrackerMuons_pt_abseta", True ],
+            'ISO' : [ "MuonID_2018_RunABCD_SF_ISO.root", "NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta", True ],
+        },
+        'electron' : {
+            'Trigger' : [ "SingleEG_JetHT_Trigger_Scale_Factors_ttHbb_Data_MC_v5.0.root", "SFs_ele_pt_ele_sceta_ele28_ht150_OR_ele35_2017BCDEF" ],
+            'ID' : [ "egammaEffi.txt_EGM2D_updatedAll.root", "EGamma_SF2D", False ],
+            'ISO' : [ "2018_ElectronTight.root", "EGamma_SF2D", False ],
+        },
+    },
+}
+
 
 #### Modules to run
 jetmetCorrector = createJMECorrector(isMC=isMC, dataYear=args.year, jesUncert="All", redojec=True)
@@ -104,7 +144,7 @@ if args.selection.startswith('dijet'):
     modulesToRun.append( nSubProd( sysSource=systSources ) )
 else:
     modulesToRun.append( jetmetCorrector() )
-    modulesToRun.append( nSubProd( selection=args.selection, sysSource=systSources ) )
+    modulesToRun.append( nSubProd( selection=args.selection, sysSource=systSources, leptonSF=LeptonSF[args.year] ) )
 
 
 #### Make it run

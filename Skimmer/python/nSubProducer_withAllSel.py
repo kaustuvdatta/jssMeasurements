@@ -8,10 +8,12 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 from PhysicsTools.NanoAODTools.postprocessing.tools import *
 
 class nSubProd(Module):
-    def __init__(self, selection='dijet', sysSource=[]):
+    def __init__(self, selection='dijet', sysSource=[], leptonSF={}, year='2016'):
         self.writeHistFile=True
-
+        self.leptonSFhelper = leptonSF
+        print(self.leptonSFhelper)
         self.selection = selection
+        self.year = year
 
         ### Kinematics Cuts AK8Jets ###
         self.minAK8JetPt = 170  ### this is the basic minimum, not the final
@@ -71,6 +73,7 @@ class nSubProd(Module):
 
         ### Booking histograms
         self.addObject( ROOT.TH1F('PUweight',   ';PUWeight',   20, 0, 2) )
+        self.addObject( ROOT.TH1F('Lepweight',   ';LepWeight',   20, 0, 2) )
         #### general selection
         selList = (['_dijetSel' ] if self.selection.startswith('dijet') else [ '_WSel', '_topSel' ] )
         for isel in [ '_noSelnoWeight', '_noSel'] + selList:
@@ -83,6 +86,7 @@ class nSubProd(Module):
             self.addObject( ROOT.TH1F('nAK4jets'+isel,   ';number of AK4 jets',   20, 0, 20) )
             self.addP4Hists( 'AK4jets', isel )
             self.addObject( ROOT.TH1F('METPt'+isel,   ';MET (GeV)',   200, 0, 2000) )
+            self.addObject( ROOT.TH1F('HT'+isel,   ';HT (GeV)',   200, 0, 2000) )
 
         for iSel in selList:
             self.addP4Hists( 'leadAK8jet', iSel )
@@ -138,6 +142,7 @@ class nSubProd(Module):
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
 
+        self.out.branch('leptonWeight',  "F")
         for ijet in ["0"]: #,1] :
             for x in self.kinematic_labels:
                 self.out.branch("goodrecojet" + ijet + "%s"%x,  "F")
@@ -203,6 +208,34 @@ class nSubProd(Module):
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
 
+    def leptonSF(self, lepton, leptonP4 ):
+
+        if lepton.startswith("muon"): leptonP4eta = abs(leptonP4.eta)
+        else: leptonP4eta = leptonP4.eta
+
+        SFFileTrigger = ROOT.TFile( os.environ['CMSSW_BASE']+"/src/jetObservables/Skimmer/data/"+self.leptonSFhelper[lepton]['Trigger'][0] )
+        histoSFTrigger = SFFileTrigger.Get( self.leptonSFhelper[lepton]['Trigger'][1] )
+        SFTrigger = histoSFTrigger.GetBinContent( histoSFTrigger.GetXaxis().FindBin( leptonP4.pt ), histoSFTrigger.GetYaxis().FindBin( leptonP4eta ) )
+
+        SFFileID = ROOT.TFile( os.environ['CMSSW_BASE']+"/src/jetObservables/Skimmer/data/"+self.leptonSFhelper[lepton]['ID'][0] )
+        histoSFID = SFFileID.Get( self.leptonSFhelper[lepton]['ID'][1] )
+        histoSFID_X = histoSFID.GetXaxis().FindBin( leptonP4.pt if self.leptonSFhelper[lepton]['ID'][2] else leptonP4eta )
+        histoSFID_Y = histoSFID.GetYaxis().FindBin( leptonP4eta if self.leptonSFhelper[lepton]['ID'][2] else leptonP4.pt )
+        SFID = histoSFID.GetBinContent( histoSFID_X, histoSFID_Y )
+        SFID = SFID if SFID>0 else 1
+
+        if self.year.startswith('2016') and lepton.startswith("muon"): leptonP4eta = leptonP4.eta    #### stupid fix for the stupid SF file
+        SFFileISO = ROOT.TFile( os.environ['CMSSW_BASE']+"/src/jetObservables/Skimmer/data/"+self.leptonSFhelper[lepton]['ISO'][0] )
+        histoSFISO = SFFileISO.Get( self.leptonSFhelper[lepton]['ISO'][1] )
+        histoSFISO_X = histoSFISO.GetXaxis().FindBin( leptonP4.pt if self.leptonSFhelper[lepton]['ISO'][2] else leptonP4eta )
+        histoSFISO_Y = histoSFISO.GetYaxis().FindBin( leptonP4eta if self.leptonSFhelper[lepton]['ISO'][2] else leptonP4.pt )
+        SFISO = histoSFISO.GetBinContent( histoSFISO_X, histoSFISO_Y )
+        SFISO = SFISO if SFISO>0 else 1
+
+        #print (SFTrigger * SFID * SFISO), SFTrigger , SFID , SFISO, leptonP4.pt, leptonP4.eta
+        return [SFTrigger , SFID , SFISO]
+
+
     def analyze(self, event):
         '''process event, return True (go to next module) or False (fail, go to next event)'''
 
@@ -230,6 +263,7 @@ class nSubProd(Module):
 
         #### Basic AK8 jet selection
         recoAK8jets = [ x for x in AK8jets if x.pt_nom > self.minAK8JetPt and abs(x.eta) < self.maxJetAK8Eta ] # and x.jetId>4]
+        AK8HT = sum( [ x.pt for x in recoAK8jets ] )
         recoAK8jets.sort(key=lambda x:x.pt_nom,reverse=True)
         ##################################################
 
@@ -239,7 +273,16 @@ class nSubProd(Module):
         ##################################################
 
         #### Weight
-        if isMC: weight = event.puWeight * event.genWeight
+        if isMC and self.selection.startswith('Wtop'):
+            if len(recoMuons)>0: leptonWeights= self.leptonSF( "muon", recoMuons[0] )
+            else: leptonWeights = [0, 0, 0]
+        else: leptonWeights = [1, 1, 1]
+
+        if isMC:
+            weight = event.puWeight * event.genWeight * np.prod(leptonWeights)
+            getattr( self, 'PUweight' ).Fill( event.puWeight )
+            getattr( self, 'Lepweight' ).Fill( np.prod(leptonWeights) )
+            self.out.fillBranch("leptonWeight", np.prod(leptonWeights) )  ### dummy for nanoAOD Tools
         else: weight = 1
         ##################################################
 
@@ -255,6 +298,7 @@ class nSubProd(Module):
             getattr( self, 'eles_eta_noSelnoWeight' ).Fill( iele.eta )
             getattr( self, 'eles_phi_noSelnoWeight' ).Fill( iele.phi )
         getattr( self, 'nAK8jets_noSelnoWeight' ).Fill( len(recoAK8jets) )
+        getattr( self, 'HT_noSelnoWeight' ).Fill( AK8HT )
         for ijet in recoAK8jets:
             getattr( self, 'AK8jets_pt_noSelnoWeight' ).Fill( ijet.pt )
             getattr( self, 'AK8jets_eta_noSelnoWeight' ).Fill( ijet.eta )
@@ -279,6 +323,7 @@ class nSubProd(Module):
             getattr( self, 'eles_eta_noSel' ).Fill( iele.eta, weight )
             getattr( self, 'eles_phi_noSel' ).Fill( iele.phi, weight )
         getattr( self, 'nAK8jets_noSel' ).Fill( len(recoAK8jets), weight )
+        getattr( self, 'HT_noSel' ).Fill( AK8HT, weight )
         for ijet in recoAK8jets:
             getattr( self, 'AK8jets_pt_noSel' ).Fill( ijet.pt, weight )
             getattr( self, 'AK8jets_eta_noSel' ).Fill( ijet.eta, weight )
@@ -292,7 +337,7 @@ class nSubProd(Module):
         getattr( self, 'METPt_noSel' ).Fill( MET.Pt(), weight )
 
         ##### Applying selection
-        if self.selection.startswith('dijet'): passSelection = (nleptons==0) and (len(recoAK8jets)>1)
+        if self.selection.startswith('dijet'): passSelection = (nleptons==0) and (len(recoAK8jets)>1) and (AK8HT>1000)
         elif self.selection.startswith('Wtop'):
             if (len(recoMuons)==1) and (len(recoAK8jets)>0) and (len(recoAK4bjets)>1) and (met.pt>40):
 
@@ -304,25 +349,25 @@ class nSubProd(Module):
                 muonIso = []
                 leptonicTop = []
                 for bjet in recoAK4bjets:
-                    if recoMuons[0].p4().DeltaR( bjet.p4() )<0.4: muonIso.append( False )
+                    if bjet.p4().DeltaR( recoMuons[0].p4() )<0.4: muonIso.append( False )
                     if (recoMuons[0].p4().DeltaR( bjet.p4() )>0.4) and (recoMuons[0].p4().DeltaR( bjet.p4() )<1.5): leptonicTop.append( True )
 
-                passSelection = all(muonIso) and ((MET+recoMuons[0].p4()).Pt()>200) and any(leptonicTop) and (abs(recoAK8jets[0].eta)<1.5) and (recoAK8jets[0].p4().DeltaR(recoMuons[0].p4())>0.8)
+                passSelection = all(muonIso) and ((MET+recoMuons[0].p4()).Pt()>200) and any(leptonicTop) and (abs(recoAK8jets[0].eta)<1.5) and (recoAK8jets[0].p4().DeltaR(recoMuons[0].p4())>0.8) and (len(recoAK4bjets)>1)
             else: passSelection = False
         else: passSelection = False
 
         if passSelection:
             if self.selection.startswith('dijet'):
-                self.createHistosTrees( '_dijetSel', recoAK8jets[0], 450., isMC, event, weight, recoElectrons, recoMuons, MET, recoAK8jets, recoAK4bjets )
+                self.createHistosTrees( '_dijetSel', recoAK8jets[0], 450., isMC, event, weight, recoElectrons, recoMuons, MET, recoAK8jets, recoAK4bjets, AK8HT )
             else:
-                if (recoAK8jets[0].msoftdrop<100) and (recoAK8jets[0].msoftdrop>60):
-                    self.createHistosTrees( '_WSel', recoAK8jets[0], 200., isMC, event, weight, recoElectrons, recoMuons, MET, recoAK8jets, recoAK4bjets )
+                if (recoAK8jets[0].msoftdrop<120) and (recoAK8jets[0].msoftdrop>60):
+                    self.createHistosTrees( '_WSel', recoAK8jets[0], 200., isMC, event, weight, recoElectrons, recoMuons, MET, recoAK8jets, recoAK4bjets, AK8HT )
                 elif (recoAK8jets[0].msoftdrop>140):
-                    self.createHistosTrees( '_topSel', recoAK8jets[0], 350., isMC, event, weight, recoElectrons, recoMuons, MET, recoAK8jets, recoAK4bjets )
+                    self.createHistosTrees( '_topSel', recoAK8jets[0], 450., isMC, event, weight, recoElectrons, recoMuons, MET, recoAK8jets, recoAK4bjets, AK8HT )
 
         return True
 
-    def createHistosTrees(self, iSel, recoAK8jet, minLeadAK8JetPt, isMC, event, weight, recoElectrons, recoMuons, MET, recoAK8jets, recoAK4bjets):
+    def createHistosTrees(self, iSel, recoAK8jet, minLeadAK8JetPt, isMC, event, weight, recoElectrons, recoMuons, MET, recoAK8jets, recoAK4bjets, AK8HT):
 
         pfCands = list(Collection(event, 'PFCandsAK8' ))
         passAK8jet = {}          ### Storing goodreco jet as list for later use
@@ -585,6 +630,7 @@ class nSubProd(Module):
                         getattr( self, 'eles_eta'+iSel ).Fill( iele.eta, weight )
                         getattr( self, 'eles_phi'+iSel ).Fill( iele.phi, weight )
                     getattr( self, 'nAK8jets'+iSel ).Fill( len(recoAK8jets), weight )
+                    getattr( self, 'HT'+iSel ).Fill( AK8HT, weight )
                     for ijet in recoAK8jets:
                         getattr( self, 'AK8jets_pt'+iSel ).Fill( ijet.pt, weight )
                         getattr( self, 'AK8jets_eta'+iSel ).Fill( ijet.eta, weight )
