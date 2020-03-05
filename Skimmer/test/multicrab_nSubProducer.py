@@ -36,8 +36,8 @@ mv src $CMSSW_BASE/src
 mv python $CMSSW_BASE/python
 
 echo Found Proxy in: $X509_USER_PROXY
-echo "python {pythonFile} --sample {datasets}"
-python {pythonFile} --sample {datasets}
+echo "python {pythonFile} --sample {datasets} --selection {selection}"
+python {pythonFile} --sample {datasets} --selection {selection}
 fi
     '''
     open('runPostProc'+options.datasets+'.sh', 'w').write(BASH_SCRIPT.format(**options.__dict__))
@@ -122,22 +122,27 @@ if __name__ == '__main__':
             "-D", "--dir",
             dest="dir", default="crab_projects",
             help=("The crab directory you want to use "),
-            metavar="DIR" )
+            )
     parser.add_option(
             "-d", "--datasets",
             dest="datasets", default='all',
             help=("File listing datasets to run over"),
-            metavar="FILE" )
+            )
     parser.add_option(
-            "-s", "--storageSite",
+            "-S", "--storageSite",
             dest="storageSite", default="T3_CH_PSI",
             help=("Storage Site"),
-            metavar="SITE")
+            )
     parser.add_option(
             "-v", "--version",
             dest="version", default="102X_v00",
             help=("Version of output"),
-            metavar="VER")
+            )
+    parser.add_option(
+            "-s", "--selection",
+            dest="selection", default="dijet",
+            help=("Selection: dijet, Wtop"),
+            )
     parser.add_option(
             "-p", "--pythonFile",
             dest="pythonFile", default="jetObservables_nSubProducer.py",

@@ -13,6 +13,7 @@ from array import array
 import argparse
 from collections import OrderedDict
 import subprocess
+#from makeDatacards import dataFiles, bkgFiles, sigFiles
 sys.path.insert(0,'../python/')
 import CMS_lumi as CMS_lumi
 import tdrstyle as tdrstyle
@@ -36,14 +37,39 @@ selection['DL_presel'] = [ 'DL Preselection' ]
 
 canvas = {}
 
+##########################################################
+def setSelection( listSel, xMin=0.65, yMax=0.65, align='right' ):
+
+    for i in range( len( listSel ) ):
+        textBox=TLatex()
+        textBox.SetNDC()
+        textBox.SetTextSize(0.04)
+        if 'right' in align: textBox.SetTextAlign(31)
+        textBox.SetTextFont(62) ### 62 is bold, 42 is normal
+        textBox.DrawLatex(xMin, yMax, listSel[i])
+        yMax = yMax -0.05
+
+##########################################################
 def plotUnfold( signalFile, var, lumi, reBin, combineLabel, plotLabel, xmin='', xmax='', labX=0.92, labY=0.50, axisX='', axisY='', log=False, ext='png', Norm=False ):
     """"Very specific, takes rootfile from combine and compute unfolding"""
 
-    MCHisto = signalFile[1].Get('jetObservables/genJet'+var)
-    MCHisto.Scale( 1/checkDict( signalFile[0], dictSamples )['XS'] / checkDict( signalFile[0], dictSamples )['2016']['nevents'], 'width' )
-    #MCHisto.Scale( 1, 'width' )
-    if len(reBin)==1: MCHisto.Rebin( reBin[0] )
-    else: MCHisto.Rebin( len(reBin), MCHisto.GetName()+'_ReBin', array('d', reBin) )
+    MCScale = checkDict( signalFile[0], dictSamples )['XS'] / checkDict( signalFile[0], dictSamples )['2016']['nevents']
+    genMCHisto = signalFile[1].Get('jetObservables/genJet'+var)
+    genMCHisto.Scale( 1/MCScale, 'width' )
+    recoMCHisto = signalFile[1].Get('jetObservables/recoJet'+var)
+    recoMCHisto.Scale( 1/MCScale, 'width' )
+    if len(reBin)==1:
+        genMCHisto.Rebin( reBin[0] )
+        recoMCHisto.Rebin( reBin[0] )
+    else:
+        genMCHisto.Rebin( len(reBin), genMCHisto.GetName()+'_ReBin', array('d', reBin) )
+        recoMCHisto.Rebin( len(reBin), recoMCHisto.GetName()+'_ReBin', array('d', reBin) )
+
+    genMCHisto.SetLineWidth(2)
+    genMCHisto.SetLineColor(kBlue)
+    recoMCHisto.SetLineWidth(2)
+    recoMCHisto.SetLineStyle(2)
+    recoMCHisto.SetLineColor(kRed)
 
     combineFile = TFile('higgsCombine'+combineLabel+'.MultiDimFit.mH120.root')
     test = combineFile.Get('limit')
@@ -52,10 +78,10 @@ def plotUnfold( signalFile, var, lumi, reBin, combineLabel, plotLabel, xmin='', 
     Yvalues = []
     YMaxError = []
     YMinError = []
-    for ibin in range(1, MCHisto.GetNbinsX()+1):
-        histoCont = MCHisto.GetBinContent(ibin)
-        histoErr = MCHisto.GetBinError(ibin)
-        Xvalues.append( MCHisto.GetBinCenter(ibin)  )
+    for ibin in range(1, genMCHisto.GetNbinsX()+1):
+        histoCont = genMCHisto.GetBinContent(ibin)
+        histoErr = genMCHisto.GetBinError(ibin)
+        Xvalues.append( genMCHisto.GetBinCenter(ibin)  )
 
         tmpHisto = TH1F('tmp'+str(ibin), 'tmp'+str(ibin), 100, -5, 5)
         test.Draw("r_bin"+str(ibin)+">>tmp"+str(ibin))
@@ -69,17 +95,22 @@ def plotUnfold( signalFile, var, lumi, reBin, combineLabel, plotLabel, xmin='', 
 
     UnfoldGraph = TGraphAsymmErrors( len(Xvalues), array( 'd', Xvalues), array( 'd', Yvalues), array( 'd', [0]*len(Xvalues)), array( 'd', [0]*len(Xvalues)), array( 'd', YMinError), array( 'd', YMaxError) )
     UnfoldGraph.SetMarkerStyle(8)
+    UnfoldGraph.GetXaxis().SetTitle( genMCHisto.GetXaxis().GetTitle() )
+    UnfoldGraph.GetYaxis().SetTitle( 'Events / '+str(genMCHisto.GetBinWidth(1)) )
+    UnfoldGraph.GetYaxis().SetTitleOffset( 0.8 )
 
-    legend=TLegend(0.60,0.75,0.90,0.90)
+    legend=TLegend(0.70,0.70,0.90,0.90)
     legend.SetFillStyle(0)
     legend.SetTextSize(0.03)
-    legend.AddEntry( UnfoldGraph, 'Unfolding ('+plotLabel+')', 'p' )
-    legend.AddEntry( MCHisto, 'MC Truth', 'l' )
+    legend.AddEntry( UnfoldGraph, 'Unfolding ('+plotLabel+')', 'pe' )
+    legend.AddEntry( genMCHisto, 'MC Truth', 'l' )
+    legend.AddEntry( recoMCHisto, 'Reco', 'l' )
 
     tdrStyle.SetPadRightMargin(0.05)
     canvas['c1'] = TCanvas('c1', 'c1',  10, 10, 750, 500 )
     UnfoldGraph.Draw("AP")
-    MCHisto.Draw("histe same")
+    recoMCHisto.Draw("histe same")
+    genMCHisto.Draw("histe same")
     legend.Draw()
     CMS_lumi.extraText = "Simulation Preliminary"
     #CMS_lumi.lumi_13TeV = str( round( (lumi/1000.), 2 ) )+" fb^{-1}, 13 TeV, 2016"
@@ -88,82 +119,58 @@ def plotUnfold( signalFile, var, lumi, reBin, combineLabel, plotLabel, xmin='', 
     CMS_lumi.CMS_lumi(canvas['c1'], 4, 0)
     canvas['c1'].SaveAs('Plots/Unfolding_'+combineLabel+'.'+ext)
 
+#####################################################
+def plotSimpleComparison( inFile1, sample, inFile2, sample2, name, rebinX=1, xmin='', xmax='', labX=0.92, labY=0.50, axisX='', axisY='', log=False, ext='png', Norm=False, version='' ):
+    """"Take two root files, make simple comparison plot"""
 
+    outputFileName = name+'_'+sample+sample2+'_simpleComparisonPlot'+version+'.'+ext
+    print('Processing.......', outputFileName)
 
-def rootHistograms( version, lumi, year):
-    """docstring for rootHistograms"""
+    if isinstance( inFile1, TTree ):
+        histo = inFile1.Get( 'jetObservables/'+name )
+        if rebinX!=1: histo.Rebin( rebinX )
+        histo2 = inFile2.Get( 'jetObservables/'+name )
+        if rebinX!=1: histo2.Rebin( rebinX )
+    else:  ##inFile1 is a histogram
+        histo = inFile1
+        histo2 = inFile2
 
-    dataFiles = OrderedDict()
-    bkgFiles = OrderedDict()
-    signalFiles = OrderedDict()
-    #extra='_boosted_'+year
-    extra='_boosted'
-    '''
-    bkgFiles["ST_s-channel"] = [ TFile('Rootfiles/'+VER+'/histograms_ST_s-channel_4f_leptonDecays_TuneCP5_PSweights_13TeV-amcatnlo-pythia8_'+extra+'boosted.root'), args.lumi*10.3*.3259/9914948.,  40, 'Single top' ]
-    bkgFiles["ST_t-channel"] = [ TFile('Rootfiles/'+VER+'/histograms_ST_t-channel_top_4f_inclusiveDecays_TuneCP5_13TeV-powhegV2-madspin-pythia8_'+extra+'boosted.root'), args.lumi*136.02/5982064.,  40, 'Single top' ]
-    bkgFiles["ST_tW_antitop"] = [ TFile('Rootfiles/'+VER+'/histograms_ST_tW_antitop_5f_inclusiveDecays_TuneCP5_PSweights_13TeV-powheg-pythia8_'+extra+'boosted.root'), args.lumi*35.85/7745276., 40, 'Single top' ]
-    bkgFiles["ST_tW_top"] = [ TFile('Rootfiles/'+VER+'/histograms_ST_tW_top_5f_inclusiveDecays_TuneCP5_PSweights_13TeV-powheg-pythia8_'+extra+'boosted.root'), args.lumi*35.85/7945242., 40, 'Single top' ]
-    bkgFiles["TTTo2L2Nu"] = [ TFile('Rootfiles/'+VER+'/histograms_TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8_'+extra+'boosted.root'), args.lumi*88.342/283000430.596, 29, 'Dileptonic tt' ]
-#    bkgFiles["TTToHadronic"] = [ TFile('Rootfiles/'+VER+'/histograms_TTToHadronic_TuneCP5_13TeV-powheg-pythia8_'+extra+'boosted.root'), args.lumi*377.96/1647945788.34, 19, 'Hadronic tt' ]
-    bkgFiles["TTToSemiLeptonic"] = [ TFile('Rootfiles/'+VER+'/histograms_TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8_'+extra+'boosted.root'), args.lumi*365.46/43732445., 27, 'Semileptonic tt' ]
-    bkgFiles["WW"] = [ TFile('Rootfiles/'+VER+'/histograms_WW_TuneCP5_13TeV-pythia8_'+extra+'boosted.root'), args.lumi*118.7/7791498., 38, 'Dibosons' ]
-    bkgFiles["WZ"] = [ TFile('Rootfiles/'+VER+'/histograms_WZ_TuneCP5_13TeV-pythia8_'+extra+'boosted.root'), args.lumi*27.6/73928630., 39, 'Dibosons' ]
-    bkgFiles["ZZ"] = [ TFile('Rootfiles/'+VER+'/histograms_ZZ_TuneCP5_13TeV-pythia8_'+extra+'boosted.root'), args.lumi*12.14/1925931., 36, 'Dibosons' ]
-#    bkgFiles["QCD"] = [ TFile('Rootfiles/'+VER+'/histograms_QCD_Pt-15to7000_TuneCP5_Flat_13TeV_pythia8_'+extra+'boosted.root'), args.lumi*1370000000./18455107., 6 , 'QCD']
-    bkgFiles["TTGJets"] = [ TFile('Rootfiles/'+VER+'/histograms_TTGJets_TuneCP5_13TeV-amcatnloFXFX-madspin-pythia8_'+extra+'boosted.root'), args.lumi*3.697/7349100., 12, 'ttGluon' ]
-#    bkgFiles["WJets"] = [ TFile('Rootfiles/'+VER+'/histograms_WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8_'+extra+'boosted.root'), args.lumi*52850.0/33073306., 33, 'WJets' ]
-    bkgFiles["ttHToNonbb"] = [ TFile('Rootfiles/'+VER+'/histograms_ttHToNonbb_M125_TuneCP5_13TeV-powheg-pythia8_'+extra+'boosted.root'), args.lumi*0.5071*(1-.5824)/5499293., kBlue, 'ttH, non-H(bb)' ]
-    #bkgFiles[""] = [ TFile('Rootfiles/'+VER+'/'), 1 ]
-    #bkgFiles[""] = [ TFile('Rootfiles/'+VER+'/'), 1 ]
+    binWidth = histo.GetBinWidth(1)
 
-    bkgFiles["TTWJetsToQQ"] = [ TFile('Rootfiles/'+VER+'/histograms_TTWJetsToQQ_TuneCP5_13TeV-amcatnloFXFX-madspin-pythia8_'+extra+'boosted.root'), args.lumi*0.3708/811306., 37, 'ttW'  ]
-    bkgFiles["TTZToQQ"] = [ TFile('Rootfiles/'+VER+'/histograms_TTZToQQ_TuneCP5_13TeV-amcatnlo-pythia8_'+extra+'boosted.root'),  args.lumi*0.6012/750000., 46, 'ttZ' ]
-    signalFiles["THW"] = [ TFile('Rootfiles/'+VER+'/histograms_THW_ctcvcp_5f_Hincl_13TeV_madgraph_pythia8_'+extra+'boosted.root'), args.lumi*0.1475/4719999., 46, 'tHW' ]
-    signalFiles["ttHTobb"] = [ TFile('Rootfiles/'+VER+'/histograms_ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8_'+extra+'boosted.root'), args.lumi*0.2934045/4216319.32, kRed, 'ttH(bb)' ]
-    ####signalFiles["ttHTobb_ttToSemiLep"] = [ TFile('Rootfiles/'+VER+'/histograms_ttHTobb_ttToSemiLep_M125_TuneCP5_13TeV-powheg-pythia8_'+extra+'boosted.root'), args.lumi*0.093/9332943, kRed ]
+    legend=TLegend(0.60,0.75,0.90,0.90)
+    legend.SetFillStyle(0)
+    legend.SetTextSize(0.03)
 
-    '''
-    bkgFiles["ST_s-channel"] = [ TFile('Rootfiles/'+version+'/histograms_ST_s-channel_4f_leptonDecays_TuneCP5_PSweights_13TeV-amcatnlo-pythia8'+extra+'.root'), lumi*10.3*.3259/6139912.0,  40, 'Single top' ]
-    bkgFiles["ST_t-channel"] = [ TFile('Rootfiles/'+version+'/histograms_ST_t-channel_top_4f_inclusiveDecays_TuneCP5_13TeV-powhegV2-madspin-pythia8'+extra+'.root'), lumi*136.02/5863722.0,  40, 'Single top' ]
-    bkgFiles["ST_tW_antitop"] = [ TFile('Rootfiles/'+version+'/histograms_ST_tW_antitop_5f_inclusiveDecays_TuneCP5_PSweights_13TeV-powheg-pythia8'+extra+'.root'), lumi*35.85/7686032.0, 40, 'Single top' ]
-    bkgFiles["ST_tW_top"] = [ TFile('Rootfiles/'+version+'/histograms_ST_tW_top_5f_inclusiveDecays_TuneCP5_PSweights_13TeV-powheg-pythia8'+extra+'.root'), lumi*35.85/7884388.0, 40, 'Single top' ]
-    bkgFiles["TTTo2L2Nu"] = [ TFile('Rootfiles/'+version+'/histograms_TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8'+extra+'.root'), lumi*88.342/8850002.0, 29, 'Dileptonic tt' ]
-    bkgFiles["TTToHadronic"] = [ TFile('Rootfiles/'+version+'/histograms_TTToHadronic_TuneCP5_13TeV-powheg-pythia8'+extra+'.root'), lumi*377.96/41084368.0, 19, 'Hadronic tt' ]
-    bkgFiles["TTToSemiLeptonic"] = [ TFile('Rootfiles/'+version+'/histograms_TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8'+extra+'.root'), lumi*365.46/35477937.0, 27, 'Semileptonic tt' ]
-    bkgFiles["WW"] = [ TFile('Rootfiles/'+version+'/histograms_WW_TuneCP5_13TeV-pythia8'+extra+'.root'), lumi*118.7/7791498.0, 38, 'Dibosons' ]
-    bkgFiles["WZ"] = [ TFile('Rootfiles/'+version+'/histograms_WZ_TuneCP5_13TeV-pythia8'+extra+'.root'), lumi*27.6/3928630.0, 39, 'Dibosons' ]
-    bkgFiles["ZZ"] = [ TFile('Rootfiles/'+version+'/histograms_ZZ_TuneCP5_13TeV-pythia8'+extra+'.root'), lumi*12.14/1925931.0, 36, 'Dibosons' ]
-    #bkgFiles["QCD"] = [ TFile('Rootfiles/'+version+'/histograms_QCD_Pt-15to7000_TuneCP5_Flat_13TeV_pythia8'+extra+'.root'), lumi*1370000000./18288989.0, 6 , 'QCD']
-    bkgFiles["TTGJets"] = [ TFile('Rootfiles/'+version+'/histograms_TTGJets_TuneCP5_13TeV-amcatnloFXFX-madspin-pythia8'+extra+'.root'), lumi*3.697/2850394.0, 12, 'ttGluon' ]
-    bkgFiles["WJets"] = [ TFile('Rootfiles/'+version+'/histograms_WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8'+extra+'.root'), lumi*52850.0/33043732.0, 33, 'WJets' ]
-    bkgFiles["ttHToNonbb"] = [ TFile('Rootfiles/'+version+'/histograms_ttHToNonbb_M125_TuneCP5_13TeV-powheg-pythia8'+extra+'.root'), lumi*0.5071*(1-.5824)/5394229.0, kBlue, 'ttH, non-H(bb)' ]
-    #bkgFiles[""] = [ TFile('Rootfiles/'+version+'/'), 1 ]
-    #bkgFiles[""] = [ TFile('Rootfiles/'+version+'/'), 1 ]
+    #histo.SetFillColor(48)
+    histo.SetFillStyle(1001)
 
-    bkgFiles["TTWJetsToQQ"] = [ TFile('Rootfiles/'+version+'/histograms_TTWJetsToQQ_TuneCP5_13TeV-amcatnloFXFX-madspin-pythia8'+extra+'.root'), lumi*0.3708/441560.0, 37, 'ttW'  ]
-    bkgFiles["TTZToQQ"] = [ TFile('Rootfiles/'+version+'/histograms_TTZToQQ_TuneCP5_13TeV-amcatnlo-pythia8'+extra+'.root'),  lumi*0.6012/356286.0, 46, 'ttZ' ]
-    signalFiles["THW"] = [ TFile('Rootfiles/'+version+'/histograms_THW_ctcvcp_5f_Hincl_13TeV_madgraph_pythia8'+extra+'.root'), lumi*0.1475/4714331.0, 46, 'tHW' ]
-    signalFiles["ttHTobb"] = [ TFile('Rootfiles/'+version+'/histograms_ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8'+extra+'.root'), lumi*0.2934045/7833734.0, kRed, 'ttH(bb)' ]
-    #signalFiles[""] = [ TFile('Rootfiles/'+version+'/'), 1 ]
+    tdrStyle.SetPadRightMargin(0.05)
+    canvas[name] = TCanvas('c1', 'c1',  10, 10, 750, 500 )
+    if log:
+        canvas[name].SetLogy()
+        outName = outputFileName.replace('_simplePlot','_Log_simplePlot')
+    else: outName = outputFileName
 
-    #if args.ttbarDecay.startswith("DL"):
-    dataFiles['SingleElectron'] = TFile.Open('Rootfiles/'+version+'/histograms_SingleElectron_Run'+year+'ALL'+extra+'.root')
-    dataFiles['SingleMuon'] = TFile.Open('Rootfiles/'+version+'/histograms_SingleMuon_Run'+year+'ALL'+extra+'.root')
+    legend.AddEntry( histo, sample, 'f' )
+    legend.AddEntry( histo2, sample2, 'f' )
+    if xmax and xmin: histo.GetXaxis().SetRangeUser( xmin, xmax )
+    histo.GetYaxis().SetTitleOffset(0.90)
+    histo.SetLineColor(kRed)
+    histo2.SetLineColor(kBlue)
+    if Norm:
+        histo.DrawNormalized('hist')
+        histo2.DrawNormalized('hist same')
+    else:
+        histo.Draw('hist')
+        histo2.Draw('hist same')
+    if not axisY: histo.GetYaxis().SetTitle( 'Events / '+str(binWidth) )
+    if axisX: histo.GetXaxis().SetTitle( axisX )
 
-    return bkgFiles, signalFiles, dataFiles
+    #labelAxis( name, histo, '' )
+    legend.Draw()
 
-##########################################################
-def setSelection( listSel, xMin=0.65, yMax=0.65, align='right' ):
-
-    for i in range( len( listSel ) ):
-        textBox=TLatex()
-        textBox.SetNDC()
-        textBox.SetTextSize(0.04)
-        if 'right' in align: textBox.SetTextAlign(31)
-        textBox.SetTextFont(62) ### 62 is bold, 42 is normal
-        textBox.DrawLatex(xMin, yMax, listSel[i])
-        yMax = yMax -0.05
-
+    canvas[name].SaveAs( 'Plots/'+outName )
+    #del can
 
 def stackPlots( nameInRoot, label, xmin, xmax, rebinX, ymin, ymax, labX, labY, log, moveCMSlogo=False, fitRatio=False ):
     """docstring for stacked plot"""
@@ -296,7 +303,7 @@ def stackPlots( nameInRoot, label, xmin, xmax, rebinX, ymin, ymax, labX, labY, l
     can.SaveAs( 'Plots/'+ outputFileName.replace('Plots', ( 'Fit' if fitRatio else '') ) )
     del can
 
-
+######################################################
 def plotQuality( nameInRoot, label, xmin, xmax, rebinX, labX, labY, log, moveCMSlogo=False, fitRatio=False ):
     """docstring for plot"""
 
@@ -305,27 +312,16 @@ def plotQuality( nameInRoot, label, xmin, xmax, rebinX, labX, labY, log, moveCMS
 
     histos = {}
 
-    for idataLabel, idata in dataFiles.iteritems():
+    for idataLabel, idata in dataFile.iteritems():
         try:
-            histos[ 'Data' ].Add( idata.Get( 'tthbb13/'+nameInRoot ) )
-            #histos[ 'Data' ].Add( idata.Get( args.ttbarDecay+'_'+nameInRoot+'_'+idataLabel+'_Run2018' ) )
+            histos[ 'Data' ].Add( idata.Get( 'jetObservables/'+nameInRoot ) )
         except (KeyError, AttributeError) as e:
-            #histos[ 'Data' ] = idata.Get( args.ttbarDecay+'_'+nameInRoot+'_'+idataLabel+'_Run2018' )
-            #histos[ 'Data' ] = idata.Get( 'tthbb13/'+nameInRoot )
-            histos[ 'Data' ] = idata.Get( 'tthbb13/'+nameInRoot.split('Total')[0] )
+            histos[ 'Data' ] = idata.Get( 'jetObservables/'+nameInRoot.split('Total')[0] )
 
     histos[ 'Bkg' ] = histos[ 'Data' ].Clone()
     histos[ 'Bkg' ].Reset()
     for isamLabel, isam in bkgFiles.iteritems():
-        #numEventsProc = float(isam[0].Get( 'genEventSumw_'+isamLabel ).GetBinContent(1)/isam[0].Get('genEventSumw_'+isamLabel).GetEntries())
-        # if 'TT' in isamLabel:
-        #    for flaLabel, flaInfo in ttbarComp.iteritems():
-        #    histos[ flaLabel ] = isam[0].Get( args.ttbarDecay+'_'+nameInRoot+'_'+isamLabel+'_'+flaLabel )
-        #    histos[ flaLabel ].Scale( isam[1] )
-        #    histos[ 'Bkg' ].Add( histos[ flaLabel ] )
-        #    else:
-        histos[ isamLabel ] = isam[0].Get( 'tthbb13/'+nameInRoot )
-        #histos[ isamLabel ] = isam[0].Get( args.ttbarDecay+'_'+nameInRoot+'_'+isamLabel )
+        histos[ isamLabel ] = isam[0].Get( 'jetObservables/'+nameInRoot )
         histos[ isamLabel ].Scale( isam[1] )
         histos[ 'Bkg' ].Add( histos[ isamLabel ] )
 
@@ -428,58 +424,7 @@ def plotQuality( nameInRoot, label, xmin, xmax, rebinX, labX, labY, log, moveCMS
     can.SaveAs( 'Plots/'+ outputFileName.replace('Plots', ( 'Fit' if fitRatio else '') ) )
     del can
 
-def plotSimpleComparison( inFile1, sample, inFile2, sample2, name, rebinX=1, xmin='', xmax='', labX=0.92, labY=0.50, axisX='', axisY='', log=False, ext='png', Norm=False, version='' ):
-    """"Take two root files, make simple comparison plot"""
-
-    outputFileName = name+'_'+sample+sample2+'_simpleComparisonPlot'+version+'.'+ext
-    print('Processing.......', outputFileName)
-
-    if isinstance( inFile1, TTree ):
-        histo = inFile1.Get( 'tthbb13/'+name )
-        if rebinX!=1: histo.Rebin( rebinX )
-        histo2 = inFile2.Get( 'tthbb13/'+name )
-        if rebinX!=1: histo2.Rebin( rebinX )
-    else:  ##inFile1 is a histogram
-        histo = inFile1
-        histo2 = inFile2
-
-    binWidth = histo.GetBinWidth(1)
-
-    legend=TLegend(0.60,0.75,0.90,0.90)
-    legend.SetFillStyle(0)
-    legend.SetTextSize(0.03)
-
-    #histo.SetFillColor(48)
-    histo.SetFillStyle(1001)
-
-    tdrStyle.SetPadRightMargin(0.05)
-    canvas[name] = TCanvas('c1', 'c1',  10, 10, 750, 500 )
-    if log:
-        canvas[name].SetLogy()
-        outName = outputFileName.replace('_simplePlot','_Log_simplePlot')
-    else: outName = outputFileName
-
-    legend.AddEntry( histo, sample, 'f' )
-    legend.AddEntry( histo2, sample2, 'f' )
-    if xmax and xmin: histo.GetXaxis().SetRangeUser( xmin, xmax )
-    histo.GetYaxis().SetTitleOffset(0.90)
-    histo.SetLineColor(kRed)
-    histo2.SetLineColor(kBlue)
-    if Norm:
-        histo.DrawNormalized('hist')
-        histo2.DrawNormalized('hist same')
-    else:
-        histo.Draw('hist')
-        histo2.Draw('hist same')
-    if not axisY: histo.GetYaxis().SetTitle( 'Events / '+str(binWidth) )
-    if axisX: histo.GetXaxis().SetTitle( axisX )
-
-    #labelAxis( name, histo, '' )
-    legend.Draw()
-
-    canvas[name].SaveAs( 'Plots/'+outName )
-    #del can
-
+##################################################
 def plotSignalBkg( name, xmin, xmax, rebinX, axisX='', axisY='', labX=0.92, labY=0.50, log=False,
                       addRatioFit=False, Norm=False, ext='png' ):
     """function to plot s and b histos"""
@@ -510,7 +455,7 @@ def plotSignalBkg( name, xmin, xmax, rebinX, axisX='', axisY='', labX=0.92, labY
     bkgInMassWindowErr = 0
     if len(bkgFiles) > 0:
         for bkgSamples in bkgFiles:
-            bkgHistos[ bkgSamples ] = bkgFiles[ bkgSamples ][0].Get( 'tthbb13/'+name )
+            bkgHistos[ bkgSamples ] = bkgFiles[ bkgSamples ][0].Get( 'jetObservables/'+name )
             bkgHistos[ bkgSamples ].SetTitle(bkgSamples)
             if bkgFiles[ bkgSamples ][1] != 1: bkgHistos[ bkgSamples ].Scale( bkgFiles[ bkgSamples ][1] )
             print(bkgSamples, round(bkgHistos[ bkgSamples ].Integral(), 2) )
@@ -530,7 +475,7 @@ def plotSignalBkg( name, xmin, xmax, rebinX, axisX='', axisY='', labX=0.92, labY
     if len(signalFiles) > 0:
         dummySig=0
         for sigSamples in signalFiles:
-            signalHistos[ sigSamples ] = signalFiles[ sigSamples ][0].Get( 'tthbb13/'+name )
+            signalHistos[ sigSamples ] = signalFiles[ sigSamples ][0].Get( 'jetObservables/'+name )
             if signalFiles[ sigSamples ][1] != 1: signalHistos[ sigSamples ].Scale( signalFiles[ sigSamples ][1] )
             print(sigSamples, round(signalHistos[ sigSamples ].Integral(), 2) )
             legend.AddEntry( signalHistos[ sigSamples ], sigSamples, 'l' if Norm else 'f' )
@@ -775,17 +720,9 @@ if __name__ == '__main__':
     CMS_lumi.lumi_13TeV = str( round( (args.lumi/1000.), 2 ) )+" fb^{-1}, 13 TeV, 2016"
 
     VER = args.version.split('_')[1] if '_' in args.version else args.version
-    #bkgFiles, signalFiles, dataFiles = rootHistograms( VER, args.lumi, args.year )
-
-    if args.norm:
-        bkgFiles.pop('TTTo2L2Nu', None)
-        #bkgFiles.pop('ST_s-channel', None)
-        #bkgFiles.pop('ST_t-channel', None)
-        #bkgFiles.pop('ST_tW_top', None)
-        bkgFiles.pop('WW', None)
-        bkgFiles.pop('WZ', None)
-        bkgFiles.pop('ZZ', None)
-        bkgFiles.pop('TTGJets', None)
+    dataFile = {}
+    dataFile['data'] = dataFiles['data']
+    bkgFiles.update(sigFiles)
 
     taulabX = 0.90
     taulabY = 0.85
@@ -794,6 +731,7 @@ if __name__ == '__main__':
 
     plotList = [
             [ 'qual', 'leadAK8JetTau21', 'Leading AK8 jet #tau_{21}', 0, 1, 2, 0.85, 0.70, True, False ],
+            [ 'qual', 'recoJetPt', 'Leading AK8 jet pt [GeV]', 100, 1500, 2, 0.85, 0.70, True, False ],
             [ 'unfold', 'genJet', 'Leading AK8 jet #tau_{21}', 0, 1, 2, 0.85, 0.70, True, False ],
     ]
 

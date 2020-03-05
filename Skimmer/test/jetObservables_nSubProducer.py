@@ -17,8 +17,7 @@ from PhysicsTools.NanoAODTools.postprocessing.modules.btv.btagSFProducer import 
 from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetHelperRun2 import *
 
 # our module
-from jetObservables.Skimmer.nSubProducer_dijet import nSubProdDijet
-from jetObservables.Skimmer.nSubProducer_boostedW_axdefScan import nsubjettinessProducer
+from jetObservables.Skimmer.nSubProducer_withAllSel import nSubProd
 
 import argparse
 
@@ -65,7 +64,7 @@ parser.add_argument(
     '--selection',
     action="store",
     help="Event selection",
-    choices=["dijet", "W", "top"],
+    choices=["dijet", "Wtop"],
     default="W",
     required=False
 )
@@ -90,6 +89,9 @@ else:
 
 cuts = PV + " && " + METFilters + " && " + Triggers
 
+
+systSources = [ '_jesTotal', '_jer', '_pu' ]
+
 #### Modules to run
 jetmetCorrector = createJMECorrector(isMC=isMC, dataYear=args.year, jesUncert="All", redojec=True)
 fatJetCorrector = createJMECorrector(isMC=isMC, dataYear=args.year, jesUncert="All", redojec=True, jetType = "AK8PFPuppi")
@@ -99,10 +101,10 @@ if isMC: modulesToRun.append( puWeight_2016() )
 modulesToRun.append( fatJetCorrector() )
 #if isMC: modulesToRun.append( btagSF2016() )
 if args.selection.startswith('dijet'):
-    modulesToRun.append( nSubProdDijet( ) ) #sysSource=[ '_jesTotal' ] ) )
+    modulesToRun.append( nSubProd( sysSource=systSources ) )
 else:
     modulesToRun.append( jetmetCorrector() )
-    modulesToRun.append( nsubjettinessProducer() )
+    modulesToRun.append( nSubProd( selection=args.selection, sysSource=systSources ) )
 
 
 #### Make it run
@@ -113,7 +115,7 @@ p1=PostProcessor(
         modules=modulesToRun,
         provenance=True,
         fwkJobReport=True,
-        #jsonInput=runsAndLumis(),
+        jsonInput=runsAndLumis(),
         maxEntries=args.numEvents,
         prefetch=args.local,
         longTermCache=args.local,
