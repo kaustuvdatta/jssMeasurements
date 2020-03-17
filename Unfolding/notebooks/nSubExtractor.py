@@ -14,10 +14,12 @@ class nSubExtractor:
 	#selections available are only for boosted W, but more to be added soon
 
 
-	def __init__(self, sample="TTbar/1", isMC=1, Mbody=7, selection='W'):
+	def __init__(self, sample="TTbar/1", isMC=1, selection='W'):
 
 		self.selection = selection
-
+		self.nSub_labels = ["_tau_0p5_", "_tau_1_", "_tau_2_"]
+		self.maxTau = 7
+		self.axisdef = 
 		
 		#self.cuts = []
 		self.sample_names = ["TTbar/1", "ST/1", "ST/2", "ST/3", "ST/4", "ST/5", "Wjets/2",
@@ -49,26 +51,29 @@ class nSubExtractor:
 
 	def create_var_sel_list():
 		
+		tau_reco = []
+		if isMC: tau_gen = []
+
+		for tauN in range(self.maxTau):
+			for x in self.nSub_labels:
+
+		        if tau_N==0 and x=="_tau_0p5_": 
+		        	tau_gen[0] ="goodgenjet0"+x+str(tauN)
+		        	tau_reco[0] ="goodgrecojet0"+x+str(tauN)
+		        	
+		        else:
+		        	tau_gen.append("goodgenjet0"+x+str(tauN))
+		        	tau_reco.append("goodgrecojet0"+x+str(tauN))
+
+
 		if isMC:
 		    var_list = ['goodrecojet0_softdrop_mass', 'goodrecojet0_mass', 
 		    			'goodrecojet0_pt', 'goodrecojet0_eta', 'goodrecojet0_phi',
 	                    'leptonicW_pT', 'lepton_pT', 'puWeight', 'PV_npvsGood', 'btagWeight_CSVV2',
 	                    'dr_LepJet', 'dphi_MetJet', 'dphi_WJet','genmatchedrecoAK8', 'passedMETfilters',
 	                    'goodgenjet0_mass',
-	                    'goodrecojet0_tau_0p5_0','goodrecojet0_tau_1_0','goodrecojet0_tau_2_0',
-	                    'goodrecojet0_tau_0p5_1','goodrecojet0_tau_1_1','goodrecojet0_tau_2_1',
-	                    'goodrecojet0_tau_0p5_2','goodrecojet0_tau_1_2','goodrecojet0_tau_2_2',
-	                    'goodrecojet0_tau_0p5_3','goodrecojet0_tau_1_3','goodrecojet0_tau_2_3',
-	                    'goodrecojet0_tau_0p5_4','goodrecojet0_tau_1_4','goodrecojet0_tau_2_4',
-	                    'goodrecojet0_tau_0p5_5','goodrecojet0_tau_1_5','goodrecojet0_tau_2_5',
-	                    'goodrecojet0_tau_0p5_6','goodrecojet0_tau_1_6','goodrecojet0_tau_2_6',
-	                    'goodgenjet0_tau_0p5_0','goodgenjet0_tau_1_0','goodgenjet0_tau_2_0',	
-	                    'goodgenjet0_tau_0p5_1','goodgenjet0_tau_1_1','goodgenjet0_tau_2_1',
-	                    'goodgenjet0_tau_0p5_2','goodgenjet0_tau_1_2','goodgenjet0_tau_2_2',
-	                    'goodgenjet0_tau_0p5_3','goodgenjet0_tau_1_3','goodgenjet0_tau_2_3',
-	                    'goodgenjet0_tau_0p5_4','goodgenjet0_tau_1_4','goodgenjet0_tau_2_4',
-	                    'goodgenjet0_tau_0p5_5','goodgenjet0_tau_1_5','goodgenjet0_tau_2_5',
-	                    'goodgenjet0_tau_0p5_6','goodgenjet0_tau_1_6','goodgenjet0_tau_2_6',
+	                    tau_reco.flatten(),
+	                    tau_gen.flatten(),
 	                    'goodgenjet0_pt', 'goodgenjet0_eta', 'goodgenjet0_phi',]
 
 	        if 'Wjets' in sample or 'Wj' in sample:
@@ -91,14 +96,9 @@ class nSubExtractor:
 	        var_list = ['goodrecojet0_softdrop_mass', 'goodrecojet0_mass', 
 	        			'goodrecojet0_pt', 'goodrecojet0_eta', 'goodrecojet0_phi', 
 	                    'leptonicW_pT', 'lepton_pT', 'PV_npvsGood',
-	                    'dr_LepJet', 'dphi_MetJet', 'dphi_WJet', 'passedMETfilters'
-	                    'goodrecojet0_tau_0p5_0','goodrecojet0_tau_1_0','goodrecojet0_tau_2_0',
-	                    'goodrecojet0_tau_0p5_1','goodrecojet0_tau_1_1','goodrecojet0_tau_2_1',
-	                    'goodrecojet0_tau_0p5_2','goodrecojet0_tau_1_2','goodrecojet0_tau_2_2',
-	                    'goodrecojet0_tau_0p5_3','goodrecojet0_tau_1_3','goodrecojet0_tau_2_3',
-	                    'goodrecojet0_tau_0p5_4','goodrecojet0_tau_1_4','goodrecojet0_tau_2_4',
-	                    'goodrecojet0_tau_0p5_5','goodrecojet0_tau_1_5','goodrecojet0_tau_2_5',
-	                    'goodrecojet0_tau_0p5_6','goodrecojet0_tau_1_6','goodrecojet0_tau_2_6',]
+	                    'dr_LepJet', 'dphi_MetJet', 'dphi_WJet', 'passedMETfilters',
+	                    tau_reco.flatten(),]
+	                    
 	        selection_indices = [var_list.index('goodrecojet0_softdrop_mass'),
                     			 var_list.index('goodrecojet0_pt'),
                   				 var_list.index('leptonicW_pT'),
