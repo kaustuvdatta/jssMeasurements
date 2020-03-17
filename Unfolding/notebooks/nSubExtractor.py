@@ -19,7 +19,7 @@ class nSubExtractor:
 		self.selection = selection
 		self.nSub_labels = ["_tau_0p5_", "_tau_1_", "_tau_2_"]
 		self.maxTau = 7
-		self.axisdef = 
+		self.axisdef = "Echeme_excl_kT"
 		
 		#self.cuts = []
 		self.sample_names = ["TTbar/1", "ST/1", "ST/2", "ST/3", "ST/4", "ST/5", "Wjets/2",
