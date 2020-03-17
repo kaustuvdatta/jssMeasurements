@@ -20,18 +20,18 @@ class nSubExtractor:
         self.nSub_labels = ["_tau_0p5_", "_tau_1_", "_tau_2_"]
         self.maxTau = 7
         self.axisdef = "Echeme_excl_kT"
-        
+        self.sample = sample
         #self.cuts = []
         self.sample_names = ["TTbar/1", "ST/1", "ST/2", "ST/3", "ST/4", "ST/5", "Wjets/2",
                              "Data/B", "Data/C", "Data/D", "Data/E", "Data/F", "Data/G", "Data/H"]
-
+        self.isMC = isMC
         self.genweights = 1.
         self.lumi = 5.75+2.57+4.24+4.03+3.11+7.57+8.65 #B+C+D+E+F+G+H
         
         # 'k-factor'*pb-1->fb-1*lumi(2016)*list of cross-sections in pb^-1
         # for "TTbar/1", "ST/1", "ST/2", "ST/3", "ST/4", "ST/5", "Wjets/2"
-        self.xs_weights = 0.8*1000*lumi*np.array([831.76, (80.95*0.322), (136.02*0.322), 35.6, 35.6, 10.12, 60781.5]) 
-        self.nevents = np.array([ 76915549, 38811017, 66960888, 998276, 992024, 2989199, 158307515])
+        #self.xs_weights = 0.8*1000*self.lumi*np.array([831.76, (80.95*0.322), (136.02*0.322), 35.6, 35.6, 10.12, 60781.5]) 
+        #self.nevents = np.array([ 76915549, 38811017, 66960888, 998276, 992024, 2989199, 158307515])
                 
 
         if self.selection=="W":    
@@ -43,40 +43,42 @@ class nSubExtractor:
 
         #self.sample = sample# ["TTbar/1", "ST/1", "ST/2", "ST/3", "ST/4", "ST/5", "Wjets/2", Data/B", "Data/C", "Data/D", "Data/E", "Data/F", "Data/G", "Data/H"]
         
-        if isMC: self.sample_list = sample
+        if self.isMC: self.sample_list = sample
 
         else: self.sample_list = [i for i in self.sample_names if i.startswith(sample)]
 
-        self.filepaths = ['/work/kadatta/Unfolding_samples/Data/%s/jetObservables_nanoskim_*.root'%sample for sample in self.sample_list]
+        if self.isMC: self.filepaths = ['../AutoObs/CMS/Unf_SysUnc/%s/jetObservables_nanoskim_*.root'%self.sample_list]
+            
+        else:    
+            self.filepaths = ['../AutoObs/CMS/Unf_SysUnc/%s/jetObservables_nanoskim_*.root'%sample for sample in self.sample_list]
 
-    def create_var_sel_list():
+    def create_var_sel_list(self):
         
-        tau_reco = []
-        if isMC: tau_gen = []
+        tau_reco = ['']
+        if self.isMC: tau_gen = ['']
 
         for tauN in range(self.maxTau):
             for x in self.nSub_labels:
 
-                if tau_N==0 and x=="_tau_0p5_": 
+                if tauN==0 and x=="_tau_0p5_": 
                     tau_gen[0] ="goodgenjet0"+x+str(tauN)
-                    tau_reco[0] ="goodgrecojet0"+x+str(tauN)
+                    tau_reco[0] ="goodrecojet0"+x+str(tauN)
                     
                 else:
                     tau_gen.append("goodgenjet0"+x+str(tauN))
-                    tau_reco.append("goodgrecojet0"+x+str(tauN))
+                    tau_reco.append("goodrecojet0"+x+str(tauN))
 
 
-        if isMC:
+        if self.isMC:
             var_list = ['goodrecojet0_softdrop_mass', 'goodrecojet0_mass', 
                         'goodrecojet0_pt', 'goodrecojet0_eta', 'goodrecojet0_phi',
                         'leptonicW_pT', 'lepton_pT', 'puWeight', 'PV_npvsGood', 'btagWeight_CSVV2',
                         'dr_LepJet', 'dphi_MetJet', 'dphi_WJet','genmatchedrecoAK8', 'passedMETfilters',
-                        'goodgenjet0_mass',
-                        tau_reco.flatten(),
-                        tau_gen.flatten(),
-                        'goodgenjet0_pt', 'goodgenjet0_eta', 'goodgenjet0_phi',]
+                        'goodgenjet0_mass','goodgenjet0_pt', 'goodgenjet0_eta', 'goodgenjet0_phi']
+            var_list.extend((tau_reco))
+            var_list.extend((tau_gen))
 
-            if 'Wjets' in sample or 'Wj' in sample:
+            if 'Wjets' in self.sample or 'Wj' in self.sample:
                 var_list.append('genWeight')
 
             selection_indices = [var_list.index('goodrecojet0_softdrop_mass'),
@@ -96,9 +98,8 @@ class nSubExtractor:
             var_list = ['goodrecojet0_softdrop_mass', 'goodrecojet0_mass', 
                         'goodrecojet0_pt', 'goodrecojet0_eta', 'goodrecojet0_phi', 
                         'leptonicW_pT', 'lepton_pT', 'PV_npvsGood',
-                        'dr_LepJet', 'dphi_MetJet', 'dphi_WJet', 'passedMETfilters',
-                        tau_reco.flatten(),]
-                        
+                        'dr_LepJet', 'dphi_MetJet', 'dphi_WJet', 'passedMETfilters',]
+            var_list.extend((tau_reco))
             selection_indices = [var_list.index('goodrecojet0_softdrop_mass'),
                                  var_list.index('goodrecojet0_pt'),
                                    var_list.index('leptonicW_pT'),
@@ -112,21 +113,23 @@ class nSubExtractor:
             return var_list, sel_i, tau_reco_ind
         return -1
 
-    def sample_loader_MC():
+    def sample_loader_MC(self):
 
         filelist=[]
 
         for path in self.filepaths:
             files=glob.glob(path)
+            #print path
             for f in files:
                 filelist.append(f)
 
-        dataset = [] 
+        samples = [] 
         c=0
         x = 0 
 
-        var_list, sel_i, tau_reco_ind, tau_gen_ind = create_var_sel_list()
-
+        var_list, sel_i, tau_reco_ind, tau_gen_ind = self.create_var_sel_list()
+        reco_nSub_basis = np.ones((1,21))
+        gen_nSub_basis = np.ones((1,21))
         for f in filelist:
             dataset = []
 
@@ -140,6 +143,7 @@ class nSubExtractor:
             for i in range(0,dataset.shape[0]):
 
                 if mSDmin<dataset[i][sel_i[0]]<=mSDmax and ptmin<dataset[i][sel_i[1]]<ptmax and leptWpTmin<dataset[i][sel_i[2]] and dataset[i][sel_i[3]]>np.pi/2 and dataset[i][sel_i[4]]>2. and dataset[i][sel_i[5]]>2. and dataset[i][sel_i[6]]==1:
+                    #print dataset[i]
                     evt_list.append(i)
             
             if c==0:
@@ -162,13 +166,13 @@ class nSubExtractor:
                     y = y+1
                 x = x+1
             if c==0:
-                data = dataset[evt_list]
+                samples = dataset[evt_list]
             else:
-                data = np.concatenate((data, dataset[evt_list]))
+                samples = np.concatenate((samples, dataset[evt_list]))
                 
             c=c+1
 
-        #if isMC: 
-        return data, reco_nSub_basis, gen_nSub_basis
+        #if self.isMC: 
+        return samples, reco_nSub_basis, gen_nSub_basis
 
-        #else: return data, reco_nSub_basis
+        #else: return samples, reco_nSub_basis
