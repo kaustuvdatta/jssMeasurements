@@ -61,11 +61,11 @@ class nSubExtractor:
             for x in self.nSub_labels:
 
                 if tauN==0 and x=="_tau_0p5_": 
-                    tau_gen[0] ="goodgenjet0"+x+str(tauN)
+                    if self.isMC: tau_gen[0] ="goodgenjet0"+x+str(tauN)
                     tau_reco[0] ="goodrecojet0"+x+str(tauN)
                     
                 else:
-                    tau_gen.append("goodgenjet0"+x+str(tauN))
+                    if self.isMC: tau_gen.append("goodgenjet0"+x+str(tauN))
                     tau_reco.append("goodrecojet0"+x+str(tauN))
 
 
@@ -74,12 +74,13 @@ class nSubExtractor:
                         'goodrecojet0_pt', 'goodrecojet0_eta', 'goodrecojet0_phi',
                         'leptonicW_pT', 'lepton_pT', 'puWeight', 'PV_npvsGood', 'btagWeight_CSVV2',
                         'dr_LepJet', 'dphi_MetJet', 'dphi_WJet','genmatchedrecoAK8', 'passedMETfilters',
-                        'goodgenjet0_mass','goodgenjet0_pt', 'goodgenjet0_eta', 'goodgenjet0_phi']
+                        'goodgenjet0_mass','goodgenjet0_pt', 'goodgenjet0_eta', 'goodgenjet0_phi', 
+                        'genWeight']
             var_list.extend((tau_reco))
             var_list.extend((tau_gen))
 
-            if 'Wjets' in self.sample or 'Wj' in self.sample:
-                var_list.append('genWeight')
+            #if 'Wjets' in self.sample or 'Wj' in self.sample:
+            #    var_list.append('genWeight')
 
             selection_indices = [var_list.index('goodrecojet0_softdrop_mass'),
                                  var_list.index('goodrecojet0_pt'),
@@ -91,8 +92,13 @@ class nSubExtractor:
             sel_i = selection_indices
             tau_reco_ind = var_list.index('goodrecojet0_tau_0p5_0')
             tau_gen_ind = var_list.index('goodgenjet0_tau_0p5_0')
-    
-            return var_list, sel_i, tau_reco_ind, tau_gen_ind
+            if 'Wjets' in self.sample or 'Wj' in self.sample:
+                weight_ind = [var_list.index('puWeight'), var_list.index('btagWeight_CSVV2'),
+                              var_list.index('genWeight'),]
+            else: 
+                weight_ind = [var_list.index('puWeight'), var_list.index('btagWeight_CSVV2')]
+
+            return var_list, sel_i, tau_reco_ind, tau_gen_ind, weight_ind
 
         else: 
             var_list = ['goodrecojet0_softdrop_mass', 'goodrecojet0_mass', 
@@ -109,11 +115,11 @@ class nSubExtractor:
                                  var_list.index('passedMETfilters')]
             sel_i = selection_indices
             tau_reco_ind = var_list.index('goodrecojet0_tau_0p5_0')
-
-            return var_list, sel_i, tau_reco_ind
+            #weight_ind = [var_list.index('puWeight'), var_list.index('btagWeight_CSVV2')]
+            return var_list, sel_i, tau_reco_ind#, weight_ind
         return -1
 
-    def sample_loader_MC(self):
+    def sample_loader(self):
 
         filelist=[]
 
@@ -126,10 +132,20 @@ class nSubExtractor:
         samples = [] 
         c=0
         x = 0 
-
-        var_list, sel_i, tau_reco_ind, tau_gen_ind = self.create_var_sel_list()
+        w = 0
+        if self.isMC: var_list, sel_i, tau_reco_ind, tau_gen_ind, weight_ind = self.create_var_sel_list()
+        else: var_list, sel_i, tau_reco_ind = self.create_var_sel_list()
+            
+            
         reco_nSub_basis = np.ones((1,21))
-        gen_nSub_basis = np.ones((1,21))
+            
+        if self.isMC: 
+            gen_nSub_basis = np.ones((1,21))
+            if 'Wjets' in self.sample or 'Wj' in self.sample or 'WJ' in self.sample: 
+                weights = np.ones((1,3))
+            else: 
+                weights = np.ones((1,2))
+
         for f in filelist:
             dataset = []
 
@@ -148,22 +164,38 @@ class nSubExtractor:
             
             if c==0:
                 reco_nSub_basis = np.ones((len(evt_list),21))
-                gen_nSub_basis = np.ones((len(evt_list),21))
-                
+                if self.isMC: 
+                    gen_nSub_basis = np.ones((len(evt_list),21))
+                    if 'Wjets' in self.sample or 'Wj' in self.sample or 'WJ' in self.sample: 
+                        weights = np.ones((len(evt_list),3))
+                    else: 
+                        weights = np.ones((len(evt_list),2))
             else:
                 reco_nSub_basis = np.concatenate((reco_nSub_basis, np.ones((len(evt_list),21))))
-                gen_nSub_basis = np.concatenate((gen_nSub_basis, np.ones((len(evt_list),21))))
+                if self.isMC: 
+                    gen_nSub_basis = np.concatenate((gen_nSub_basis, np.ones((len(evt_list),21))))
+                    if 'Wjets' in self.sample or 'Wj' in self.sample or 'WJ' in self.sample: 
+                        weights = np.concatenate((weights, np.ones((len(evt_list),3))))
+                    else: 
+                        weights = np.concatenate((weights, np.ones((len(evt_list),2))))
+            
+            if self.isMC:
+                for i in evt_list:
+                    k = 0
+                    for z in weight_ind:
+                        weights[w][k] = dataset[i][z]
+                        k = k+1
 
-            #print ("on file %d"%c), x, len(evt_list), reco_nSub_basis.shape[0]
             for i in evt_list:
                 y=0
                 for z in range(tau_reco_ind,tau_reco_ind+21):
                     reco_nSub_basis[x][y] = dataset[i][z]
                     y = y+1
-                y=0
-                for z in range(tau_gen_ind,tau_gen_ind+21):
-                    gen_nSub_basis[x][y] = dataset[i][z]   
-                    y = y+1
+                if self.isMC: 
+                    y=0
+                    for z in range(tau_gen_ind,tau_gen_ind+21):
+                        gen_nSub_basis[x][y] = dataset[i][z]   
+                        y = y+1
                 x = x+1
             if c==0:
                 samples = dataset[evt_list]
@@ -172,7 +204,6 @@ class nSubExtractor:
                 
             c=c+1
 
-        #if self.isMC: 
-        return samples, reco_nSub_basis, gen_nSub_basis
-
+        if self.isMC: return samples, reco_nSub_basis, gen_nSub_basis, weights
+        else: return samples, reco_nSub_basis#, genweights
         #else: return samples, reco_nSub_basis
