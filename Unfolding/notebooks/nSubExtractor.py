@@ -161,10 +161,12 @@ class nSubExtractor:
             evt_list = []
             for i in range(0,dataset.shape[0]):
 
-                if mSDmin<dataset[i][sel_i[0]]<=mSDmax and ptmin<dataset[i][sel_i[1]]<ptmax and leptWpTmin<dataset[i][sel_i[2]] and dataset[i][sel_i[3]]>np.pi/2 and dataset[i][sel_i[4]]>2. and dataset[i][sel_i[5]]>2. and dataset[i][sel_i[6]]==1:
-                    if dataset[i][tau_gen_ind+2]>10**(-5) and dataset[i][tau_gen_ind+4]>10**(-5):
-                        evt_list.append(i)
-            
+                if self.mSDmin<dataset[i][sel_i[0]]<=self.mSDmax and self.ptmin<dataset[i][sel_i[1]] and self.leptWpTmin<dataset[i][sel_i[2]] and dataset[i][sel_i[3]]>np.pi/2 and dataset[i][sel_i[4]]>2. and dataset[i][sel_i[5]]>2. and dataset[i][sel_i[6]]==1:
+                    if self.isMC:
+                        if dataset[i][tau_gen_ind+2]>10**(-5) and dataset[i][tau_gen_ind+4]>10**(-5):
+                            evt_list.append(i)
+                    else: evt_list.append(i)
+                
             if c==0:
                 reco_nSub_basis = np.ones((len(evt_list),21))
                 if self.isMC: 
