@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # jetObservables
 
 
@@ -27,3 +28,6 @@ This package contains two folders:
 1. Skimmer: where the trees and histograms are created for the step 2. More information in the following [README](Skimmer/README.md)
 2. Unfolding: where takes the input from step 1 and uses combine to do the unfolding procedure. More information in the following [README](Unfolding/README.md)
 
+=======
+# jetObservables# jssMeasurements
+>>>>>>> 9e20fdad8610c69faae287837c46c5cc5101cafb
